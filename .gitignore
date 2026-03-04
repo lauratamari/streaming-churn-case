@@ -1,0 +1,19 @@
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Data files
+data/
+*.parquet
+*.csv
+
+# Model files
+models/
+*.pkl
+
+# Plots
+plots/
