@@ -205,7 +205,7 @@ def get_filters():
     """Return available filter values from the DB."""
     connection = get_connection()
     cursor = connection.cursor()
-    cursor.execute("SELECT DISTINCT country FROM users_test ORDER BY country_test")
+    cursor.execute("SELECT DISTINCT country FROM users_test ORDER BY country")
     countries = [r[0] for r in cursor.fetchall()]
     cursor.close()
     connection.close()
