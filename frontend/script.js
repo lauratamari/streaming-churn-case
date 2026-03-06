@@ -1,4 +1,4 @@
-const API = "http://localhost:8000";
+const API = "https://streaming-churn-case.onrender.com";
 
 const CHURN_LABELS = ["Renews", "Cancels Early", "Won't Renew"];
 
