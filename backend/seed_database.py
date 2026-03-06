@@ -1,7 +1,7 @@
 import random
 import logging
 from datetime import datetime, timedelta
-from backend.database import get_connection
+from database import get_connection
 from psycopg2.extras import execute_values
 
 #using logging instead of print()
@@ -76,7 +76,7 @@ def create_tables(cursor: object) -> None:
     """)
 
 #this will generate 5k users
-def seed_users(cursor: object, n: int = 5000) -> None:
+def seed_users(cursor: object, n: int = 10000) -> None:
     now = datetime.now()
     users_data = []
 
@@ -218,7 +218,7 @@ def main() -> None:
         create_tables(cursor)
 
         logger.info("Seeding data...")
-        seed_users(cursor, n=5000)
+        seed_users(cursor, n=10000)
 
         connection.commit()
         logger.info("Database seeded successfully!")
