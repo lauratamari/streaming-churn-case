@@ -211,7 +211,6 @@ def seed_users(cursor: object, n: int = 10000) -> None:
 def main() -> None:
     connection = get_connection()
     cursor = connection.cursor()
-    cursor.execute("SET search_path TO public")
 
     try:
         logger.info("Creating tables...")

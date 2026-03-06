@@ -62,7 +62,6 @@ app.add_middleware(
 def fetch_users(user_ids: list[int] | None = None) -> pd.DataFrame:
     connection = get_connection()
     cursor = connection.cursor()
-    cursor.execute("SET search_path TO test_data")
 
     filter_clause = ""
     params = ()
@@ -79,11 +78,11 @@ def fetch_users(user_ids: list[int] | None = None) -> pd.DataFrame:
             e.days_since_last_watch, e.completion_rate,
             st.tickets_last_30d,
             b.price_increase_last_6m, b.payment_failures
-        FROM users u
-        JOIN subscriptions s    ON u.user_id = s.user_id
-        JOIN engagement e       ON u.user_id = e.user_id
-        JOIN support_tickets st ON u.user_id = st.user_id
-        JOIN billing b          ON u.user_id = b.user_id
+        FROM users_test u
+        JOIN subscriptions_test s    ON u.user_id = s.user_id
+        JOIN engagement_test e       ON u.user_id = e.user_id
+        JOIN support_tickets_test st ON u.user_id = st.user_id
+        JOIN billing_test b          ON u.user_id = b.user_id
         {filter_clause}
     """, params)
 

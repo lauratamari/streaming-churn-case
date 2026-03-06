@@ -20,14 +20,14 @@ PRICE_MAP = {"Basic": 9.99, "Standard": 14.99, "Premium": 19.99}
 #creating the tables, the DB was previously created on PostgreSQL
 def create_tables(cursor: object) -> None:
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users(
+        CREATE TABLE IF NOT EXISTS users_test(
             user_id SERIAL PRIMARY KEY,
             age INT,
             country VARCHAR(50),
             signup_date DATE
         );
 
-        CREATE TABLE IF NOT EXISTS subscriptions(
+        CREATE TABLE IF NOT EXISTS subscriptions_test(
             subscription_id SERIAL PRIMARY KEY,
             user_id INT UNIQUE REFERENCES users(user_id),
             plan VARCHAR(20),
@@ -39,7 +39,7 @@ def create_tables(cursor: object) -> None:
             start_date DATE
         );
 
-        CREATE TABLE IF NOT EXISTS engagement(
+        CREATE TABLE IF NOT EXISTS engagement_test(
             engagement_id SERIAL PRIMARY KEY,
             user_id INT UNIQUE REFERENCES users(user_id),
             avg_watch_hours_per_week NUMERIC(6,2),
@@ -48,13 +48,13 @@ def create_tables(cursor: object) -> None:
             completion_rate NUMERIC(4,2)
         );
 
-        CREATE TABLE IF NOT EXISTS support_tickets(
+        CREATE TABLE IF NOT EXISTS support_tickets_test(
             support_id SERIAL PRIMARY KEY,
             user_id INT UNIQUE REFERENCES users(user_id),
             tickets_last_30d INT
         );
 
-        CREATE TABLE IF NOT EXISTS billing(
+        CREATE TABLE IF NOT EXISTS billing_test(
             billing_id SERIAL PRIMARY KEY,
             user_id INT UNIQUE REFERENCES users(user_id),
             price_increase_last_6m BOOLEAN,
@@ -76,7 +76,7 @@ def seed_users(cursor: object, n: int = 150) -> None:
 
     #execute_values permits to perform a bulk update, instead of a loop inserting one row at a time. this makes it faster
     execute_values(cursor, """
-        INSERT INTO users (age, country, signup_date)
+        INSERT INTO users_test (age, country, signup_date)
         VALUES %s
         RETURNING user_id;
     """, users_data, page_size=n)
@@ -130,7 +130,7 @@ def seed_users(cursor: object, n: int = 150) -> None:
         billing_data.append((user_id, price_increase, payment_failures))
 
     execute_values(cursor, """
-        INSERT INTO subscriptions (
+        INSERT INTO subscriptions_test (
             user_id, plan, billing_cycle, monthly_price, yearly_price,
             last_renewal_date, next_renewal_date, start_date
         )
@@ -138,17 +138,17 @@ def seed_users(cursor: object, n: int = 150) -> None:
     """, subscriptions_data)
 
     execute_values(cursor, """
-        INSERT INTO engagement (user_id, avg_watch_hours_per_week, number_of_logins_per_week, days_since_last_watch, completion_rate)
+        INSERT INTO engagement_test (user_id, avg_watch_hours_per_week, number_of_logins_per_week, days_since_last_watch, completion_rate)
         VALUES %s
     """, engagement_data)
 
     execute_values(cursor, """
-        INSERT INTO support_tickets (user_id, tickets_last_30d)
+        INSERT INTO support_tickets_test (user_id, tickets_last_30d)
         VALUES %s
     """, support_data)
 
     execute_values(cursor, """
-        INSERT INTO billing (user_id, price_increase_last_6m, payment_failures)
+        INSERT INTO billing_test (user_id, price_increase_last_6m, payment_failures)
         VALUES %s
     """, billing_data)
 
@@ -156,7 +156,6 @@ def seed_users(cursor: object, n: int = 150) -> None:
 def main() -> None:
     connection = get_connection()
     cursor = connection.cursor()
-    cursor.execute("SET search_path TO public")
 
     try:
         logger.info("Creating tables...")
