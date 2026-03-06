@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Churn Prediction</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="header-label">Streaming Analytics</div>
+      <h1>Churn <em>Prediction</em></h1>
+      <p class="header-sub">XGBoost · Multiclass · Live DB</p>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ── Summary cards ─────────────────────────────────── -->
+    <section class="summary" id="summary">
+      <div class="card" id="card-total">
+        <span class="card-value" id="total">—</span>
+        <span class="card-label">Total Users</span>
+      </div>
+      <div class="card card-green" id="card-renews">
+        <span class="card-value" id="renews">—</span>
+        <span class="card-label">Renews</span>
+      </div>
+      <div class="card card-amber" id="card-cancels">
+        <span class="card-value" id="cancels">—</span>
+        <span class="card-label">Cancels Early</span>
+      </div>
+      <div class="card card-red" id="card-wont">
+        <span class="card-value" id="wont">—</span>
+        <span class="card-label">Won't Renew</span>
+      </div>
+    </section>
+
+    <!-- ── Filters ────────────────────────────────────────── -->
+    <section class="filters">
+      <div class="filter-group">
+        <label for="f-country">Country</label>
+        <select id="f-country"><option value="">All</option></select>
+      </div>
+      <div class="filter-group">
+        <label for="f-plan">Plan</label>
+        <select id="f-plan"><option value="">All</option></select>
+      </div>
+      <div class="filter-group">
+        <label for="f-cycle">Billing</label>
+        <select id="f-cycle"><option value="">All</option></select>
+      </div>
+      <button id="btn-apply">Apply</button>
+      <button id="btn-reset" class="btn-ghost">Reset</button>
+    </section>
+
+    <!-- ── Charts ────────────────────────────────────────── -->
+    <section class="charts">
+      <div class="chart-box">
+        <h2>Churn Distribution</h2>
+        <div class="bar-chart" id="bar-chart"></div>
+      </div>
+      <div class="chart-box">
+        <h2>Single User Lookup</h2>
+        <div class="lookup">
+          <div class="lookup-input-row">
+            <input type="number" id="lookup-id" placeholder="User ID" min="1" />
+            <button id="btn-lookup">Search</button>
+          </div>
+          <div id="lookup-result" class="lookup-result hidden"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Table ─────────────────────────────────────────── -->
+    <section class="table-section">
+      <div class="table-header-row">
+        <h2>All Predictions</h2>
+        <span id="row-count" class="row-count"></span>
+      </div>
+      <div class="table-wrap">
+        <table id="pred-table">
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Country</th>
+              <th>Plan</th>
+              <th>Billing</th>
+              <th>Prediction</th>
+              <th>P(Renews)</th>
+              <th>P(Cancels Early)</th>
+              <th>P(Won't Renew)</th>
+            </tr>
+          </thead>
+          <tbody id="pred-tbody"></tbody>
+        </table>
+        <div id="table-empty" class="table-empty hidden">No results found.</div>
+        <div id="table-loading" class="table-loading">Loading predictions…</div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>Churn Prediction · Portfolio Project · <a href="https://lauratamari.github.io/">Personal Website</a> · <a href="https://github.com/lauratamari?">GitHub</a></span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

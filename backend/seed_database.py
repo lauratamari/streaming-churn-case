@@ -1,7 +1,7 @@
 import random
 import logging
 from datetime import datetime, timedelta
-from database import get_connection
+from backend.database import get_connection
 from psycopg2.extras import execute_values
 
 #using logging instead of print()
@@ -211,6 +211,7 @@ def seed_users(cursor: object, n: int = 5000) -> None:
 def main() -> None:
     connection = get_connection()
     cursor = connection.cursor()
+    cursor.execute("SET search_path TO public")
 
     try:
         logger.info("Creating tables...")
