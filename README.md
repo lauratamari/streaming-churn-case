@@ -2,7 +2,7 @@
 
 A full-stack churn prediction system for a streaming service. Users are classified into one of three churn categories using an XGBoost multiclass classifier trained on historical data pulled from PostgreSQL. The model is deployed to a FastAPI backend on Render, which queries a separate set of test tables to serve live predictions to a static frontend dashboard.
 
-**Live demo:** [streaming-churn-case.onrender.com](https://streaming-churn-case.onrender.com)
+**Live demo:** [streaming-churn-case](https://lauratamari.github.io/streaming-churn-case/)
 
 ---
 
