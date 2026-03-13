@@ -485,27 +485,31 @@ footer {
 }
 
 @media (max-width: 860px) {
-  .summary { 
-    grid-template-columns: repeat(2, 1fr); 
+  main {
+    padding: 2rem 1.5rem 3rem;
+    gap: 2rem;
+  }
+
+  .summary {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .charts {
-    grid-template-columns: 1fr; 
+    grid-template-columns: 1fr;
+  }
+
+  .card-value {
+    font-size: 2rem;
   }
 }
+
 @media (max-width: 560px) {
-  main { 
-    padding: 1.5rem 1rem 3rem; 
+  /* Header */
+  header {
+    padding: 1.5rem 1rem 1.2rem;
   }
 
-  header { 
-    padding: 2rem 1rem 1.5rem; 
-  }
-
-  .summary { 
-    grid-template-columns: repeat(2, 1fr); 
-  }
-
+  /* Nav: scroll horizontally, never wrap */
   .nav-tabs {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -513,34 +517,60 @@ footer {
     padding: 0 1rem;
   }
 
-  .nav-tabs::-webkit-scrollbar { 
-    display: none; 
+  .nav-tabs::-webkit-scrollbar {
+    display: none;
   }
 
-  .nav-tabs .header-inner, .nav-tabs .nav-inner {
+  .nav-tabs .header-inner {
     display: flex;
     flex-wrap: nowrap;
     min-width: max-content;
+    padding-left: 0;
+    padding-right: 0;
   }
 
-  .nav-tab { 
-    white-space: nowrap; 
+  .nav-tab {
+    white-space: nowrap;
+    padding: .75rem .9rem;
   }
 
-  .table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  .lang-toggle {
+    padding-right: .5rem;
   }
 
-  thead th,
-  tbody td {
-    padding: .5rem .65rem;
-    font-size: .7rem;
+  /* Main content */
+  main {
+    padding: 1.2rem .9rem 3rem;
+    gap: 1.5rem;
   }
 
+  /* Summary cards */
+  .summary {
+    grid-template-columns: repeat(2, 1fr);
+    gap: .7rem;
+  }
+
+  .card {
+    padding: 1rem 1.1rem;
+  }
+
+  .card-value {
+    font-size: 1.6rem;
+  }
+
+  .card-label {
+    font-size: .62rem;
+  }
+
+  /* Filters: stack vertically */
   .filters {
     flex-direction: column;
     align-items: stretch;
+    gap: .75rem;
+  }
+
+  .filter-group {
+    width: 100%;
   }
 
   .filters select,
@@ -551,14 +581,71 @@ footer {
 
   .filters button {
     align-self: stretch;
+    width: 100%;
+  }
+
+  /* Charts */
+  .chart-box {
+    padding: 1.1rem 1rem;
+  }
+
+  .chart-box h2 {
+    font-size: 1rem;
+    margin-bottom: .9rem;
+  }
+
+  /* Lookup */
+  .lookup-input-row {
+    flex-direction: column;
+    gap: .5rem;
+  }
+
+  .lookup-input-row input {
+    width: 100%;
+  }
+
+  .lookup-input-row button {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  /* Table */
+  .table-header-row {
+    flex-wrap: wrap;
+    padding: 1rem 1rem .75rem;
+    gap: .4rem;
+  }
+
+  .table-header-row h2 {
+    font-size: 1rem;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  thead th,
+  tbody td {
+    padding: .5rem .65rem;
+    font-size: .68rem;
+    white-space: nowrap;
+  }
+
+  /* Footer */
+  footer {
+    padding: 1rem;
+    font-size: .62rem;
   }
 }
+
 /* ── Language toggle ──────────────────────────────────────── */
 .lang-toggle {
   display: flex;
   gap: .3rem;
   align-items: center;
 }
+
 .lang-btn {
   font-family: var(--mono);
   font-size: .62rem;
@@ -572,5 +659,6 @@ footer {
   cursor: pointer;
   transition: color .15s, border-color .15s, background .15s;
 }
+
 .lang-btn:hover { color: var(--text); border-color: var(--text); }
 .lang-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
