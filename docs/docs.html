@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Code Documentation · Churn Prediction</title>
+  <link rel="stylesheet" href="style_docs.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="header-label" data-i18n="header.label">Streaming Analytics</div>
+      <h1 data-i18n="header.h1">Churn <em>Prediction</em></h1>
+      <p class="header-sub" data-i18n="header.sub">XGBoost · Multiclass · Live DB</p>
+    </div>
+  </header>
+
+  <nav class="nav-tabs">
+    <div class="nav-inner" style="align-items:center;">
+      <a href="index.html" class="nav-tab" data-i18n="nav.dashboard">Dashboard</a>
+      <a href="docs.html" class="nav-tab active" data-i18n="nav.documentation">Documentation</a>
+      <a href="eda.html" class="nav-tab" data-i18n="nav.eda">EDA</a>
+      <a href="https://github.com/lauratamari/streaming-churn-case" target="_blank" class="nav-tab" data-i18n="nav.github">GitHub Repository</a>
+      <div class="lang-toggle" style="margin-left:auto;padding-right:.5rem;">
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="pt">PT</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="docs-layout">
+
+    <aside class="docs-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-title" data-i18n="docs.sidebar.overview">Overview</div>
+        <a href="#overview" class="sidebar-link" data-i18n="docs.sidebar.project">Project</a>
+        <a href="#architecture" class="sidebar-link" data-i18n="docs.sidebar.architecture">Architecture</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title" data-i18n="docs.sidebar.database">Database</div>
+        <a href="#db-design" class="sidebar-link" data-i18n="docs.sidebar.schema">Schema Design</a>
+        <a href="#db-connection" class="sidebar-link" data-i18n="docs.sidebar.connection">Connection Setup</a>
+        <a href="#db-seeding" class="sidebar-link" data-i18n="docs.sidebar.seeding">Seeding Data</a>
+        <a href="#churn-label" class="sidebar-link" data-i18n="docs.sidebar.churnlabel">Churn Label Logic</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title" data-i18n="docs.sidebar.ml">ML Pipeline</div>
+        <a href="#feature-eng" class="sidebar-link" data-i18n="docs.sidebar.feature">Feature Engineering</a>
+        <a href="#model" class="sidebar-link" data-i18n="docs.sidebar.model">Model Details</a>
+        <a href="#model-results" class="sidebar-link" data-i18n="docs.sidebar.results">Results & Scores</a>
+        <a href="#classes" class="sidebar-link" data-i18n="docs.sidebar.classes">Churn Classes</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title" data-i18n="docs.sidebar.frontend">Frontend</div>
+        <a href="#state" class="sidebar-link" data-i18n="docs.sidebar.state">State & DOM</a>
+        <a href="#functions" class="sidebar-link" data-i18n="docs.sidebar.functions">JS Functions</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title" data-i18n="docs.sidebar.api">API</div>
+        <a href="#endpoints" class="sidebar-link" data-i18n="docs.sidebar.endpoints">Endpoints</a>
+        <a href="#responses" class="sidebar-link" data-i18n="docs.sidebar.responses">Response Shapes</a>
+      </div>
+    </aside>
+
+    <div class="docs-content">
+
+      <div class="doc-section" id="overview">
+        <h2 class="doc-section-title" data-i18n="docs.overview.title">Project <em>Overview</em></h2>
+        <p class="doc-p" data-i18n="docs.overview.p1">A full-stack churn prediction system for a streaming service. Users are classified into one of three churn categories using an XGBoost multiclass classifier trained in Python on historical data pulled from PostgreSQL. The trained model is deployed to a FastAPI backend on Render, which queries a separate set of test tables — stored in the same PostgreSQL database — to serve live predictions to the dashboard.</p>
+        <div class="doc-subsection-title" data-i18n="docs.overview.goal">Goal</div>
+        <p class="doc-p" data-i18n="docs.overview.goal.p">Predict which subscribers are likely to leave — split into three outcomes (<span class="tag tag-0">Renews</span> <span class="tag tag-1">Cancels Early</span> <span class="tag tag-2">Won't Renew</span>) — enabling targeted retention strategies rather than treating all at-risk users the same.</p>
+        <div class="doc-subsection-title" data-i18n="docs.overview.stack">Tech Stack</div>
+        <table class="state-table">
+          <thead><tr><th data-i18n="docs.overview.th.layer">Layer</th><th data-i18n="docs.overview.th.tech">Technology</th><th data-i18n="docs.overview.th.purpose">Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>ML Model</td><td><span class="type-badge">XGBoost</span></td><td>Multiclass churn classification (3 classes)</td></tr>
+            <tr><td>Backend</td><td><span class="type-badge">FastAPI</span></td><td>REST API, prediction serving</td></tr>
+            <tr><td>Database</td><td><span class="type-badge">PostgreSQL</span></td><td>Single DB — training tables (10k users + churn labels) and test tables (150 users, no labels) side by side</td></tr>
+            <tr><td>Hosting</td><td><span class="type-badge">Render</span></td><td>Cloud deployment of API + model</td></tr>
+            <tr><td>Frontend</td><td><span class="type-badge">Vanilla JS</span></td><td>Dashboard, filters, table, user lookup</td></tr>
+            <tr><td>Analysis</td><td><span class="type-badge">Python / Jupyter</span></td><td>EDA, feature engineering, model training notebooks</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-section" id="architecture">
+        <h2 class="doc-section-title" data-i18n="docs.arch.title"><em>Architecture</em></h2>
+        <div class="arch-diagram">
+          <p class="arch-label" style="text-align:left;margin:0 0 .8rem" data-i18n="docs.arch.training">Training Pipeline</p>
+          <div class="arch-row">
+            <div class="arch-box"><span class="ab-label">Training Tables</span><span class="ab-name">PostgreSQL</span></div>
+            <span class="arch-arrow">→</span>
+            <div class="arch-box"><span class="ab-label">Python</span><span class="ab-name">XGBoost Training</span></div>
+            <span class="arch-arrow">→</span>
+            <div class="arch-box"><span class="ab-label">Artifact</span><span class="ab-name">model.pkl</span></div>
+            <span class="arch-arrow">→</span>
+            <div class="arch-box highlight"><span class="ab-label">Deployed on</span><span class="ab-name">Render</span></div>
+          </div>
+          <div style="border-top:1px dashed var(--border);margin:1.4rem 0"></div>
+          <p class="arch-label" style="text-align:left;margin:0 0 .8rem" data-i18n="docs.arch.serving">Serving Pipeline</p>
+          <div class="arch-row">
+            <div class="arch-box"><span class="ab-label">Client</span><span class="ab-name">Browser</span></div>
+            <span class="arch-arrow">→</span>
+            <div class="arch-box highlight"><span class="ab-label">API</span><span class="ab-name">FastAPI / Render</span></div>
+            <span class="arch-arrow">→</span>
+            <div class="arch-box"><span class="ab-label">Test Tables</span><span class="ab-name">PostgreSQL</span></div>
+          </div>
+          <p class="arch-label" style="margin-top:1.2rem" data-i18n="docs.arch.note">Training and test tables live in the same PostgreSQL database — the API queries the <code style="font-size:.6rem;color:inherit">*_test</code> tables directly at request time.</p>
+        </div>
+      </div>
+
+      <div class="doc-section" id="db-design">
+        <h2 class="doc-section-title" data-i18n="docs.db.title">Database <em>Design</em></h2>
+        <p class="doc-p" data-i18n="docs.db.p1">The project uses a single PostgreSQL database with two sets of tables — training tables and test tables — all connected via <code>user_id</code> as a foreign key. The schema separates concerns clearly: user demographics, subscription info, engagement behaviour, support history, and billing are each stored independently.</p>
+
+        <div class="doc-subsection-title" data-i18n="docs.db.training.label">Training Tables — 6 tables · 10,000 users</div>
+        <p class="doc-p" data-i18n="docs.db.training.p">Seeded by <code>seed_database.py</code>. Includes a <code>churn_labels</code> table with the ground truth used to train the model.</p>
+        <table class="state-table">
+          <thead><tr><th data-i18n="docs.db.th.table">Table</th><th data-i18n="docs.db.th.columns">Key Columns</th></tr></thead>
+          <tbody>
+            <tr><td><code>users</code></td><td>user_id (PK) · age · country · signup_date</td></tr>
+            <tr><td><code>subscriptions</code></td><td>user_id (FK) · plan · billing_cycle · monthly_price · yearly_price · cancelled · cancellation_date · last_renewal_date · next_renewal_date · start_date</td></tr>
+            <tr><td><code>engagement</code></td><td>user_id (FK) · avg_watch_hours_per_week · number_of_logins_per_week · days_since_last_watch · completion_rate</td></tr>
+            <tr><td><code>support_tickets</code></td><td>user_id (FK) · tickets_last_30d</td></tr>
+            <tr><td><code>billing</code></td><td>user_id (FK) · price_increase_last_6m · payment_failures</td></tr>
+            <tr><td><code>churn_labels</code></td><td>user_id (FK) · churn_type INT — 0 = Renews · 1 = Cancels Early · 2 = Won't Renew</td></tr>
+          </tbody>
+        </table>
+
+        <div class="doc-subsection-title" style="margin-top:1.2rem" data-i18n="docs.db.test.label">Test Tables — 5 tables · 150 users</div>
+        <p class="doc-p" data-i18n="docs.db.test.p">Seeded by <code>test_data.py</code> into the same database. Mirrors the training schema but omits <code>churn_labels</code> entirely — these users have no ground truth; their churn class is predicted live by the deployed model.</p>
+        <table class="state-table">
+          <thead><tr><th data-i18n="docs.db.th.table">Table</th><th data-i18n="docs.db.th.columns">Key Columns</th></tr></thead>
+          <tbody>
+            <tr><td><code>users_test</code></td><td>user_id (PK) · age · country · signup_date</td></tr>
+            <tr><td><code>subscriptions_test</code></td><td>user_id (FK) · plan · billing_cycle · monthly_price · yearly_price · last_renewal_date · next_renewal_date · start_date</td></tr>
+            <tr><td><code>engagement_test</code></td><td>user_id (FK) · avg_watch_hours_per_week · number_of_logins_per_week · days_since_last_watch · completion_rate</td></tr>
+            <tr><td><code>support_tickets_test</code></td><td>user_id (FK) · tickets_last_30d</td></tr>
+            <tr><td><code>billing_test</code></td><td>user_id (FK) · price_increase_last_6m · payment_failures</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-section" id="db-connection">
+        <h2 class="doc-section-title" data-i18n="docs.conn.title">Connection <em>Setup</em></h2>
+        <p class="doc-p" data-i18n="docs.conn.p1">The database connection is handled in <code>database.py</code> using <code>psycopg2</code>. Credentials are never hardcoded — they are loaded from a <code>.env</code> file using <code>python-dotenv</code>, keeping sensitive information out of the codebase and out of version control.</p>
+        <div class="code-block"><span class="kw">from</span> dotenv <span class="kw">import</span> load_dotenv
+<span class="kw">import</span> os, psycopg2
+
+load_dotenv()
+
+<span class="kw">def</span> <span class="fn">get_connection</span>():
+    connection = psycopg2.<span class="fn">connect</span>(
+        host     = os.<span class="fn">getenv</span>(<span class="str">"DB_HOST"</span>),
+        database = os.<span class="fn">getenv</span>(<span class="str">"DB_NAME"</span>),
+        user     = os.<span class="fn">getenv</span>(<span class="str">"DB_USER"</span>),
+        password = os.<span class="fn">getenv</span>(<span class="str">"DB_PASSWORD"</span>),
+        port     = os.<span class="fn">getenv</span>(<span class="str">"DB_PORT"</span>)
+    )
+    <span class="kw">return</span> connection</div>
+        <p class="doc-p" data-i18n="docs.conn.p2">The <code>.env</code> file is never committed to version control (added to <code>.gitignore</code>). For EDA notebooks, the connection was upgraded to <code>SQLAlchemy</code> to avoid a pandas deprecation warning with raw psycopg2 connections — the same credentials are reused.</p>
+      </div>
+
+      <div class="doc-section" id="db-seeding">
+        <h2 class="doc-section-title" data-i18n="docs.seed.title">Database <em>Seeding</em></h2>
+        <p class="doc-p" data-i18n="docs.seed.p1">Both databases were created entirely in Python — no SQL client or GUI was used. This makes setup fully reproducible: clone the project, configure <code>.env</code>, and run the script to recreate the database from scratch.</p>
+
+        <div class="doc-subsection-title" data-i18n="docs.seed.sublabel">How seed_database.py works</div>
+        <ul class="doc-list">
+          <li data-i18n="docs.seed.li1">Generates user data (age, country, signup_date) for all <code>n</code> users and collects them in a list first.</li>
+          <li data-i18n="docs.seed.li2">Inserts all users in a single batch using <code>execute_values</code> — much faster than inserting one row at a time.</li>
+          <li data-i18n="docs.seed.li3">Retrieves all generated <code>user_id</code>s via <code>RETURNING user_id</code>, then builds related records for all other tables.</li>
+          <li data-i18n="docs.seed.li4">Inserts each table's data in one bulk call.</li>
+          <li data-i18n="docs.seed.li5">Wraps everything in a single transaction — if seeding fails halfway through, a rollback ensures no partial data is left.</li>
+        </ul>
+
+        <div class="doc-subsection-title" style="margin-top:1rem" data-i18n="docs.seed.flow">Execution flow</div>
+        <div class="code-block"><span class="kw">def</span> <span class="fn">main</span>():
+    connection = <span class="fn">get_connection</span>()
+    cursor = connection.<span class="fn">cursor</span>()
+    <span class="kw">try</span>:
+        <span class="fn">create_tables</span>(cursor)         <span class="cm"># CREATE TABLE IF NOT EXISTS for all tables</span>
+        <span class="fn">seed_users</span>(cursor, n=<span class="val">10000</span>)    <span class="cm"># bulk insert users + all related tables</span>
+        connection.<span class="fn">commit</span>()
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        connection.<span class="fn">rollback</span>()          <span class="cm"># clean slate on any failure</span>
+        <span class="kw">raise</span>
+    <span class="kw">finally</span>:
+        cursor.<span class="fn">close</span>()
+        connection.<span class="fn">close</span>()</div>
+      </div>
+
+      <div class="doc-section" id="churn-label">
+        <h2 class="doc-section-title" data-i18n="docs.churn.title">Churn <em>Label Logic</em></h2>
+        <p class="doc-p" data-i18n="docs.churn.p1">Churn is assigned probabilistically using a weighted score to avoid purely deterministic labels. A fully deterministic rule would allow the model to memorise the logic rather than learn from the features.</p>
+        <div class="code-block"><span class="cm"># Weighted churn score with noise</span>
+churn_score = (
+    (days_since_last_watch > <span class="val">40</span>) * <span class="val">0.5</span> +   <span class="cm"># strongest signal</span>
+    (tickets > <span class="val">3</span>)               * <span class="val">0.3</span> +   <span class="cm"># support signal</span>
+    (price_increase <span class="kw">and</span> watch_hours &lt; <span class="val">5</span>) * <span class="val">0.2</span>  <span class="cm"># billing signal</span>
+)
+churn_prob = churn_score + random.<span class="fn">uniform</span>(<span class="val">-0.05</span>, <span class="val">0.05</span>)  <span class="cm"># add noise</span>
+
+<span class="cm"># Multiclass label assignment</span>
+<span class="kw">if not</span> churn:    churn_type = <span class="val">0</span>   <span class="cm"># Renews</span>
+<span class="kw">elif</span> cancelled:  churn_type = <span class="val">1</span>   <span class="cm"># Cancels Early (cancelled before renewal)</span>
+<span class="kw">else</span>:            churn_type = <span class="val">2</span>   <span class="cm"># Won't Renew (lets subscription lapse)</span></div>
+        <table class="state-table" style="margin-top:.5rem">
+          <thead><tr><th>Class</th><th>Label</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><span class="type-badge">0</span></td><td><span class="tag tag-0">Renews</span></td><td>Predicted to renew at their next cycle.</td></tr>
+            <tr><td><span class="type-badge">1</span></td><td><span class="tag tag-1">Cancels Early</span></td><td>Cancels before the current period ends.</td></tr>
+            <tr><td><span class="type-badge">2</span></td><td><span class="tag tag-2">Won't Renew</span></td><td>Lets the subscription lapse at expiry without cancelling early.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-section" id="feature-eng">
+        <h2 class="doc-section-title" data-i18n="docs.feat.title">Feature <em>Engineering</em></h2>
+        <p class="doc-p" data-i18n="docs.feat.p1">Feature engineering transforms raw data into more informative inputs. After this step the dataset grew from 15 to 31 columns. The same <code>build_features()</code> logic runs in both the training notebook and in <code>main.py</code> at serving time, ensuring full consistency.</p>
+
+        <div class="fn-grid">
+
+          <div class="feat-card">
+            <div class="feat-card-header"><span class="feat-name">engagement_score</span></div>
+            <div class="feat-card-body">
+              <div class="code-block">df[<span class="str">'engagement_score'</span>] = (
+    df[<span class="str">'completion_rate'</span>]               * <span class="val">0.4</span> +
+    (df[<span class="str">'avg_watch_hours_per_week'</span>] / <span class="val">20</span>) * <span class="val">0.4</span> +
+    (df[<span class="str">'number_of_logins_per_week'</span>] / <span class="val">20</span>) * <span class="val">0.2</span>
+)</div>
+              <p class="fn-desc" data-i18n="docs.feat.desc.engagement">A weighted composite of watch hours (40%), completion rate (40%), and logins (20%). Gives the model one clean pre-combined signal instead of three correlated features.</p>
+            </div>
+          </div>
+
+          <div class="feat-card">
+            <div class="feat-card-header"><span class="feat-name">tenure_days</span></div>
+            <div class="feat-card-body">
+              <div class="code-block">df[<span class="str">'tenure_days'</span>] = (reference_date - df[<span class="str">'signup_date'</span>]).dt.days</div>
+              <p class="fn-desc" data-i18n="docs.feat.desc.tenure">How long the user has been subscribed, in days. Captures loyalty — long-standing users tend to be stickier. Requires <code>signup_date</code> to be converted to datetime first (DATE columns from PostgreSQL are read as <code>object</code> dtype by pandas and must be converted manually).</p>
+            </div>
+          </div>
+
+          <div class="feat-card">
+            <div class="feat-card-header"><span class="feat-name">is_inactive</span></div>
+            <div class="feat-card-body">
+              <div class="code-block">df[<span class="str">'is_inactive'</span>] = (df[<span class="str">'days_since_last_watch'</span>] > <span class="val">30</span>).astype(<span class="fn">int</span>)</div>
+              <p class="fn-desc" data-i18n="docs.feat.desc.inactive">Binary flag (0/1) for users inactive for over 30 days. Directly encodes the strongest EDA signal — <code>days_since_last_watch</code> had the highest churn correlation at r = +0.37. Converting to a binary threshold makes the decision boundary explicit. 49% of users are flagged as inactive.</p>
+            </div>
+          </div>
+
+          <div class="feat-card">
+            <div class="feat-card-header"><span class="feat-name">high_risk_billing</span></div>
+            <div class="feat-card-body">
+              <div class="code-block">df[<span class="str">'high_risk_billing'</span>] = (
+    (df[<span class="str">'price_increase_last_6m'</span>] == <span class="val">True</span>) &
+    (df[<span class="str">'payment_failures'</span>] > <span class="val">0</span>)
+).astype(<span class="fn">int</span>)</div>
+              <p class="fn-desc" data-i18n="docs.feat.desc.billing">Flags users who have experienced both a price increase and a payment failure — a compound billing risk signal.</p>
+            </div>
+          </div>
+
+          <div class="feat-card">
+            <div class="feat-card-header"><span class="feat-name">high_support</span></div>
+            <div class="feat-card-body">
+              <div class="code-block">df[<span class="str">'high_support'</span>] = (df[<span class="str">'tickets_last_30d'</span>] > <span class="val">3</span>).astype(<span class="fn">int</span>)</div>
+              <p class="fn-desc" data-i18n="docs.feat.desc.support">Binary flag for users with more than 3 support tickets in the last 30 days, indicating friction or dissatisfaction.</p>
+            </div>
+          </div>
+
+          <div class="feat-card">
+            <div class="feat-card-header"><span class="feat-name">is_yearly</span></div>
+            <div class="feat-card-body">
+              <div class="code-block">df[<span class="str">'is_yearly'</span>] = (df[<span class="str">'billing_cycle'</span>] == <span class="str">'yearly'</span>).astype(<span class="fn">int</span>)</div>
+              <p class="fn-desc" data-i18n="docs.feat.desc.yearly">Binary encoding of billing cycle. Annual subscribers are generally stickier, making this relationship explicit for the model.</p>
+            </div>
+          </div>
+
+          <div class="feat-card">
+            <div class="feat-card-header"><span class="feat-name">effective_monthly_price</span></div>
+            <div class="feat-card-body">
+              <div class="code-block">df[<span class="str">'effective_monthly_price'</span>] = np.<span class="fn">where</span>(
+    df[<span class="str">'billing_cycle'</span>] == <span class="str">'yearly'</span>,
+    df[<span class="str">'yearly_price'</span>] / <span class="val">12</span>,
+    df[<span class="str">'monthly_price'</span>]
+)</div>
+              <p class="fn-desc" data-i18n="docs.feat.desc.price">Normalises price to a monthly equivalent regardless of billing cycle, making price comparable across all users.</p>
+            </div>
+          </div>
+
+          <div class="feat-card">
+            <div class="feat-card-header"><span class="feat-name">days_until_renewal</span></div>
+            <div class="feat-card-body">
+              <div class="code-block">df[<span class="str">'days_until_renewal'</span>] = (
+    df[<span class="str">'next_renewal_date'</span>] - reference_date
+).dt.days.<span class="fn">clip</span>(lower=<span class="val">0</span>)</div>
+              <p class="fn-desc" data-i18n="docs.feat.desc.renewal">How many days until the user's next renewal. Users close to renewal with low engagement are at higher churn risk.</p>
+            </div>
+          </div>
+
+          <div class="feat-card">
+            <div class="feat-card-header"><span class="feat-name">One-Hot Encoding</span></div>
+            <div class="feat-card-body">
+              <div class="code-block">df = pd.<span class="fn">get_dummies</span>(df, columns=[<span class="str">'country'</span>, <span class="str">'plan'</span>], drop_first=<span class="val">False</span>)</div>
+              <p class="fn-desc" data-i18n="docs.feat.desc.ohe"><code>country</code> and <code>plan</code> are one-hot encoded. <code>drop_first=False</code> keeps all categories. The exact column order is saved to <code>feature_columns.json</code> after training, so the API aligns features identically at prediction time via <code>align_columns()</code>.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="doc-section" id="model">
+        <h2 class="doc-section-title" data-i18n="docs.model.title">Model <em>Details</em></h2>
+        <p class="doc-p" data-i18n="docs.model.p1">Three classifiers were trained and compared — Logistic Regression, Random Forest, and XGBoost — all evaluated on a held-out test set of 2,000 users (80/20 stratified split). XGBoost was selected as the final model based on its best macro F1 score. After training, the pipeline and exact feature column order are persisted to disk.</p>
+
+        <div class="doc-subsection-title" data-i18n="docs.model.config">Training Configuration</div>
+        <div class="code-block"><span class="kw">from</span> xgboost <span class="kw">import</span> XGBClassifier
+<span class="kw">from</span> sklearn.utils <span class="kw">import</span> compute_sample_weight
+
+model = <span class="fn">XGBClassifier</span>(
+    objective         = <span class="str">"multi:softprob"</span>,
+    num_class         = <span class="val">3</span>,
+    eval_metric       = <span class="str">"mlogloss"</span>,
+    use_label_encoder = <span class="val">False</span>,
+    random_state      = <span class="val">42</span>
+)
+
+<span class="cm"># class imbalance handled via sample weights at fit time</span>
+sample_weights = <span class="fn">compute_sample_weight</span>(class_weight=<span class="str">"balanced"</span>, y=y_train)
+model.<span class="fn">fit</span>(X_train, y_train, sample_weight=sample_weights)</div>
+
+        <div class="doc-subsection-title" style="margin-top:1.4rem" data-i18n="docs.model.dist">Class Distribution (Training Data)</div>
+        <p class="doc-p" data-i18n="docs.model.dist.p">The dataset is heavily imbalanced — <span class="tag tag-1">Cancels Early</span> accounts for only 3.7% of users. Sample weights were used to prevent the model from ignoring this minority class.</p>
+        <table class="state-table">
+          <thead><tr><th>Class</th><th>Label</th><th>Count</th><th>Share</th></tr></thead>
+          <tbody>
+            <tr><td><span class="type-badge">0</span></td><td><span class="tag tag-0">Renews</span></td><td>7,672</td><td>76.7%</td></tr>
+            <tr><td><span class="type-badge">1</span></td><td><span class="tag tag-1">Cancels Early</span></td><td>372</td><td>3.7%</td></tr>
+            <tr><td><span class="type-badge">2</span></td><td><span class="tag tag-2">Won't Renew</span></td><td>1,956</td><td>19.6%</td></tr>
+          </tbody>
+        </table>
+
+        <div class="doc-subsection-title" style="margin-top:1.4rem" data-i18n="docs.model.compare">Model Comparison</div>
+        <p class="doc-p" data-i18n="docs.model.compare.p">XGBoost was chosen for its highest macro F1 — the most meaningful metric given class imbalance. Raw accuracy is misleading here since a model that predicts only "Renews" would score 76%+ without learning anything useful.</p>
+        <table class="state-table">
+          <thead><tr><th>Model</th><th>Accuracy</th><th>Macro F1</th><th>Cancels Early F1</th><th>ROC-AUC (OvR)</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Logistic Regression</td>
+              <td>76.2%</td><td>0.533</td><td>0.167</td><td>0.9019</td>
+            </tr>
+            <tr>
+              <td>Random Forest</td>
+              <td>86.1%</td><td>0.524</td><td>0.000</td><td>0.9178</td>
+            </tr>
+            <tr style="background:var(--green-bg)">
+              <td><strong>XGBoost</strong> ✓ selected</td>
+              <td><strong>84.9%</strong></td><td><strong>0.562</strong></td><td><strong>0.075</strong></td><td><strong>0.9099</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="doc-subsection-title" style="margin-top:1.4rem" data-i18n="docs.model.perclass">XGBoost — Per-Class Results (Test Set, n = 2,000)</div>
+        <table class="state-table">
+          <thead><tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="tag tag-0">Renews</span></td>
+              <td>0.95</td><td>0.90</td><td>0.92</td><td>1,534</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-1">Cancels Early</span></td>
+              <td>0.12</td><td>0.05</td><td>0.07</td><td>75</td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-2">Won't Renew</span></td>
+              <td>0.61</td><td>0.79</td><td>0.69</td><td>391</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="doc-subsection-title" style="margin-top:1.4rem" data-i18n="docs.model.features">Top 15 Feature Importances</div>
+        <p class="doc-p" data-i18n="docs.model.features.p"><code>days_since_last_watch</code> dominates by a large margin, confirming the EDA finding (r = +0.37). The next strongest signals are billing-related (<code>price_increase_last_6m</code>) and support volume (<code>tickets_last_30d</code>). Several country one-hot columns rank mid-table, reflecting geographic patterns in the synthetic data.</p>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
+          <table class="feat-bar-table">
+            <tbody>
+              <tr><td class="feat-bar-name">days_since_last_watch</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:100%"></div></div></div></td><td class="feat-bar-val">0.232</td></tr>
+              <tr><td class="feat-bar-name">price_increase_last_6m</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:24%"></div></div></div></td><td class="feat-bar-val">0.057</td></tr>
+              <tr><td class="feat-bar-name">tickets_last_30d</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:22%"></div></div></div></td><td class="feat-bar-val">0.053</td></tr>
+              <tr><td class="feat-bar-name">country_Thailand</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:16%"></div></div></div></td><td class="feat-bar-val">0.038</td></tr>
+              <tr><td class="feat-bar-name">country_Spain</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:15%"></div></div></div></td><td class="feat-bar-val">0.036</td></tr>
+              <tr><td class="feat-bar-name">country_Argentina</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:14%"></div></div></div></td><td class="feat-bar-val">0.034</td></tr>
+              <tr><td class="feat-bar-name">country_UK</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:13%"></div></div></div></td><td class="feat-bar-val">0.031</td></tr>
+              <tr><td class="feat-bar-name">avg_watch_hours_per_week</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:13%"></div></div></div></td><td class="feat-bar-val">0.031</td></tr>
+              <tr><td class="feat-bar-name">country_Mexico</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:13%"></div></div></div></td><td class="feat-bar-val">0.030</td></tr>
+              <tr><td class="feat-bar-name">country_South Korea</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:13%"></div></div></div></td><td class="feat-bar-val">0.030</td></tr>
+              <tr><td class="feat-bar-name">days_until_renewal</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:13%"></div></div></div></td><td class="feat-bar-val">0.030</td></tr>
+              <tr><td class="feat-bar-name">country_Canada</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:12%"></div></div></div></td><td class="feat-bar-val">0.029</td></tr>
+              <tr><td class="feat-bar-name">country_Germany</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:12%"></div></div></div></td><td class="feat-bar-val">0.029</td></tr>
+              <tr><td class="feat-bar-name">country_Brazil</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:12%"></div></div></div></td><td class="feat-bar-val">0.028</td></tr>
+              <tr><td class="feat-bar-name">plan_Standard</td><td><div class="feat-bar-cell"><div class="feat-bar-track"><div class="feat-bar-fill" style="width:11%"></div></div></div></td><td class="feat-bar-val">0.026</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="doc-subsection-title" style="margin-top:1.4rem" data-i18n="docs.model.takeaways">Key Takeaways</div>
+        <ul class="doc-list">
+          <li data-i18n="docs.model.li1"><strong>Renews</strong> and <strong>Won't Renew</strong> are predicted reliably — F1 of 0.92 and 0.69 respectively. These are the actionable majority classes for retention campaigns.</li>
+          <li data-i18n="docs.model.li2"><strong>Cancels Early</strong> (F1 = 0.07) is the hardest class by far — only 75 examples in the test set (3.7%). Even with sample weighting, the signal is too sparse for confident predictions. This is a known limitation of the synthetic data design.</li>
+          <li data-i18n="docs.model.li3">Random Forest achieved the highest ROC-AUC (0.9178) but scored 0.000 F1 on Cancels Early, meaning it never predicted that class at all. XGBoost's balanced approach makes it the better choice for real-world use.</li>
+          <li data-i18n="docs.model.li4"><code>days_since_last_watch</code> is the single most important feature by a wide margin — consistent with the EDA correlation analysis.</li>
+        </ul>
+
+        <div class="doc-subsection-title" style="margin-top:1.4rem" data-i18n="docs.model.persist">Model Persistence</div>
+        <div class="code-block"><span class="kw">import</span> joblib, json
+
+joblib.<span class="fn">dump</span>(results[<span class="str">"XGBoost"</span>][<span class="str">"pipeline"</span>], <span class="str">"models/xgboost_churn.pkl"</span>)
+
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">"models/feature_columns.json"</span>, <span class="str">"w"</span>) <span class="kw">as</span> f:
+    json.<span class="fn">dump</span>(<span class="fn">list</span>(X_train.columns), f)</div>
+        <p class="doc-p" data-i18n="docs.model.persist.p">The <code>feature_columns.json</code> file is critical — it ensures the serving API builds features in exactly the same column order the model was trained on via <code>align_columns()</code> in <code>main.py</code>.</p>
+      </div>
+
+      <div class="doc-section" id="classes">
+        <h2 class="doc-section-title" data-i18n="docs.classes.title">Churn <em>Classes</em></h2>
+        <table class="state-table">
+          <thead><tr><th data-i18n="docs.classes.th.index">Class Index</th><th data-i18n="docs.classes.th.label">Label</th><th data-i18n="docs.classes.th.tag">CSS Tag</th><th data-i18n="docs.classes.th.meaning">Meaning</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="type-badge">0</span></td>
+              <td><span class="tag tag-0">Renews</span></td>
+              <td><code>.tag-0</code></td>
+              <td data-i18n="docs.classes.td.0">User is predicted to renew their subscription at the next cycle.</td>
+            </tr>
+            <tr>
+              <td><span class="type-badge">1</span></td>
+              <td><span class="tag tag-1">Cancels Early</span></td>
+              <td><code>.tag-1</code></td>
+              <td data-i18n="docs.classes.td.1">User is predicted to cancel before their current period ends.</td>
+            </tr>
+            <tr>
+              <td><span class="type-badge">2</span></td>
+              <td><span class="tag tag-2">Won't Renew</span></td>
+              <td><code>.tag-2</code></td>
+              <td data-i18n="docs.classes.td.2">User is predicted to let their subscription lapse at expiry without cancelling early.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-section" id="state">
+        <h2 class="doc-section-title" data-i18n="docs.state.title">State <em>&amp; DOM</em></h2>
+        <div class="doc-subsection-title" data-i18n="docs.state.global">Global State</div>
+        <table class="state-table">
+          <thead><tr><th>Variable</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>allPredictions</code></td>
+              <td><span class="type-badge">Array</span></td>
+              <td data-i18n="docs.state.td.predictions">Full list of prediction objects currently displayed. Updated on every filter apply.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="doc-subsection-title" style="margin-top:1rem" data-i18n="docs.state.dom">Key DOM References</div>
+        <table class="state-table">
+          <thead><tr><th>Variable</th><th>Element ID</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>elTotal / elRenews / elCancels / elWont</code></td><td><code>#total</code> etc.</td><td data-i18n="docs.state.td.cards">Summary card value spans, animated on data load.</td></tr>
+            <tr><td><code>fCountry / fPlan / fCycle</code></td><td><code>#f-country</code> etc.</td><td data-i18n="docs.state.td.filters">Filter <code>&lt;select&gt;</code> elements.</td></tr>
+            <tr><td><code>tbody</code></td><td><code>#pred-tbody</code></td><td data-i18n="docs.state.td.tbody">Table body for prediction rows.</td></tr>
+            <tr><td><code>lookupInput / lookupResult</code></td><td><code>#lookup-id</code> etc.</td><td data-i18n="docs.state.td.lookup">Single-user lookup input and result panel.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-section" id="functions">
+        <h2 class="doc-section-title" data-i18n="docs.fns.title">JS <em>Functions</em></h2>
+        <div class="fn-grid">
+
+          <div class="fn-card">
+            <div class="fn-card-header"><span class="fn-name">loadFilters()</span><span class="fn-async">async</span></div>
+            <div class="fn-card-body">
+              <p class="fn-desc" data-i18n="docs.fns.desc.loadFilters">Fetches available filter values from <code>GET /filters</code> and populates the three dropdown selects (country, plan, billing cycle) with <code>&lt;option&gt;</code> elements.</p>
+            </div>
+          </div>
+
+          <div class="fn-card">
+            <div class="fn-card-header"><span class="fn-name">loadPredictions()</span><span class="fn-async">async</span></div>
+            <div class="fn-card-body">
+              <p class="fn-desc" data-i18n="docs.fns.desc.loadPredictions">Reads current filter values, builds a query string, and fetches <code>GET /predict?…</code>. On success, calls <code>updateSummary()</code>, <code>updateBarChart()</code>, and <code>renderTable()</code>. Manages loading state visibility.</p>
+              <div class="fn-params">
+                <div class="fn-param-row"><span class="param-name">side effects</span><span class="param-desc" data-i18n="docs.fns.param.sideeffects">Sets <code>allPredictions</code>, updates summary cards, bar chart, and table.</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-card">
+            <div class="fn-card-header"><span class="fn-name">updateSummary(s)</span></div>
+            <div class="fn-card-body">
+              <p class="fn-desc" data-i18n="docs.fns.desc.updateSummary">Reads the summary object returned by the API and triggers animated count transitions on all four summary card values.</p>
+              <div class="fn-params">
+                <div class="fn-param-row"><span class="param-name">s.total</span><span class="param-desc" data-i18n="docs.fns.param.stotal">Total user count across the current filter set.</span></div>
+                <div class="fn-param-row"><span class="param-name">s.renews / s.cancels_early / s.wont_renew</span><span class="param-desc" data-i18n="docs.fns.param.scounts">Per-class user counts.</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-card">
+            <div class="fn-card-header"><span class="fn-name">animateCount(el, target)</span></div>
+            <div class="fn-card-body">
+              <p class="fn-desc" data-i18n="docs.fns.desc.animateCount">Smoothly transitions a numeric text value from its current number to <code>target</code> over 500 ms using cubic ease-out via <code>requestAnimationFrame</code>.</p>
+              <div class="fn-params">
+                <div class="fn-param-row"><span class="param-name">el</span><span class="param-desc" data-i18n="docs.fns.param.el">DOM element whose <code>textContent</code> is the animated counter.</span></div>
+                <div class="fn-param-row"><span class="param-name">target</span><span class="param-desc" data-i18n="docs.fns.param.target">Final integer value to animate toward.</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-card">
+            <div class="fn-card-header"><span class="fn-name">updateBarChart(s)</span></div>
+            <div class="fn-card-body">
+              <p class="fn-desc" data-i18n="docs.fns.desc.updateBarChart">Rebuilds the bar chart HTML inside <code>#bar-chart</code> from the summary object. Each bar's width is set as an inline percentage, triggering the CSS transition on <code>.bar-fill</code>.</p>
+            </div>
+          </div>
+
+          <div class="fn-card">
+            <div class="fn-card-header"><span class="fn-name">renderTable(predictions)</span></div>
+            <div class="fn-card-body">
+              <p class="fn-desc" data-i18n="docs.fns.desc.renderTable">Clears and rebuilds the predictions table using a <code>DocumentFragment</code> for performance. Each row gets a colored <code>.tag</code> badge based on <code>predicted_churn_type</code> (0, 1, or 2).</p>
+              <div class="fn-params">
+                <div class="fn-param-row"><span class="param-name">predictions</span><span class="param-desc" data-i18n="docs.fns.param.predictions">Array of prediction objects from the API.</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fn-card">
+            <div class="fn-card-header"><span class="fn-name">lookupUser()</span><span class="fn-async">async</span></div>
+            <div class="fn-card-body">
+              <p class="fn-desc" data-i18n="docs.fns.desc.lookupUser">Reads the user ID from <code>#lookup-id</code> and calls <code>GET /predict/:id</code>. Renders a result card with country, plan, billing cycle, predicted class badge, and all three class probabilities as pill badges.</p>
+            </div>
+          </div>
+
+          <div class="fn-card">
+            <div class="fn-card-header"><span class="fn-name">showLoading(show)</span></div>
+            <div class="fn-card-body">
+              <p class="fn-desc" data-i18n="docs.fns.desc.showLoading">Toggles visibility of the <code>#table-loading</code> overlay and clears the table body when entering loading state.</p>
+              <div class="fn-params">
+                <div class="fn-param-row"><span class="param-name">show</span><span class="param-desc" data-i18n="docs.fns.param.show"><code>boolean</code> — <code>true</code> to show loading, <code>false</code> to hide.</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="doc-section" id="endpoints">
+        <h2 class="doc-section-title" data-i18n="docs.endpoints.title">API <em>Endpoints</em></h2>
+        <p class="doc-p" data-i18n="docs.endpoints.base">Base URL: <code>https://streaming-churn-case.onrender.com</code></p>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-top:.5rem">
+          <table class="endpoint-table">
+            <thead><tr><th>Method</th><th>Endpoint</th><th>Query Params</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="method-badge method-get">GET</span></td>
+                <td><code>/filters</code></td>
+                <td>—</td>
+                <td>Returns lists of distinct countries, plans, and billing cycles for the filter dropdowns.</td>
+              </tr>
+              <tr>
+                <td><span class="method-badge method-get">GET</span></td>
+                <td><code>/predict</code></td>
+                <td><code>country</code>, <code>plan</code>, <code>billing_cycle</code></td>
+                <td>Returns all predictions, optionally filtered. Includes a <code>summary</code> object with per-class counts.</td>
+              </tr>
+              <tr>
+                <td><span class="method-badge method-get">GET</span></td>
+                <td><code>/predict/:id</code></td>
+                <td>—</td>
+                <td>Returns the prediction for a single user by integer user ID. Returns 404 if not found.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="doc-section" id="responses">
+        <h2 class="doc-section-title" data-i18n="docs.responses.title">Response <em>Shapes</em></h2>
+
+        <div class="doc-subsection-title" data-i18n="docs.responses.filters">GET /filters</div>
+        <div class="code-block"><span class="kw">{</span>
+  <span class="str">"countries"</span>:      [<span class="str">"USA"</span>, <span class="str">"Brazil"</span>, <span class="str">"UK"</span>, ...],
+  <span class="str">"plans"</span>:          [<span class="str">"Basic"</span>, <span class="str">"Standard"</span>, <span class="str">"Premium"</span>],
+  <span class="str">"billing_cycles"</span>: [<span class="str">"monthly"</span>, <span class="str">"yearly"</span>]
+<span class="kw">}</span></div>
+
+        <div class="doc-subsection-title" style="margin-top:1.2rem" data-i18n="docs.responses.predict">GET /predict</div>
+        <div class="code-block"><span class="kw">{</span>
+  <span class="str">"summary"</span>: <span class="kw">{</span>
+    <span class="str">"total"</span>:         <span class="val">150</span>,
+    <span class="str">"renews"</span>:        <span class="val">72</span>,
+    <span class="str">"cancels_early"</span>: <span class="val">48</span>,
+    <span class="str">"wont_renew"</span>:    <span class="val">30</span>
+  <span class="kw">}</span>,
+  <span class="str">"predictions"</span>: [
+    <span class="kw">{</span>
+      <span class="str">"user_id"</span>:               <span class="val">42</span>,
+      <span class="str">"country"</span>:              <span class="str">"Brazil"</span>,
+      <span class="str">"plan"</span>:                 <span class="str">"Premium"</span>,
+      <span class="str">"billing_cycle"</span>:        <span class="str">"monthly"</span>,
+      <span class="str">"predicted_churn_type"</span>:  <span class="val">0</span>,
+      <span class="str">"churn_label"</span>:          <span class="str">"Renews"</span>,
+      <span class="str">"prob_renews"</span>:          <span class="val">0.821</span>,
+      <span class="str">"prob_cancels_early"</span>:   <span class="val">0.112</span>,
+      <span class="str">"prob_wont_renew"</span>:      <span class="val">0.067</span>
+    <span class="kw">}</span>,
+    ...
+  ]
+<span class="kw">}</span></div>
+
+        <div class="doc-subsection-title" style="margin-top:1.2rem" data-i18n="docs.responses.predictid">GET /predict/:id</div>
+        <div class="code-block"><span class="cm">// Same shape as a single prediction object above</span>
+<span class="kw">{</span>
+  <span class="str">"user_id"</span>:               <span class="val">42</span>,
+  <span class="str">"country"</span>:              <span class="str">"Brazil"</span>,
+  <span class="str">"plan"</span>:                 <span class="str">"Premium"</span>,
+  <span class="str">"billing_cycle"</span>:        <span class="str">"monthly"</span>,
+  <span class="str">"predicted_churn_type"</span>:  <span class="val">0</span>,
+  <span class="str">"churn_label"</span>:          <span class="str">"Renews"</span>,
+  <span class="str">"prob_renews"</span>:          <span class="val">0.821</span>,
+  <span class="str">"prob_cancels_early"</span>:   <span class="val">0.112</span>,
+  <span class="str">"prob_wont_renew"</span>:      <span class="val">0.067</span>
+<span class="kw">}</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <span data-i18n="footer.text">Churn Prediction · Portfolio Project · <a href="https://lauratamari.github.io/">Personal Website</a> · <a href="https://github.com/lauratamari?">GitHub</a></span>
+  </footer>
+
+  <script src="script_docs.js"></script>
+</body>
+</html>

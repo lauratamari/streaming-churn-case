@@ -2,10 +2,8 @@ const API = "https://streaming-churn-case.onrender.com";
 
 const CHURN_LABELS = ["Renews", "Cancels Early", "Won't Renew"];
 
-// ── State ────────────────────────────────────────────────
 let allPredictions = [];
 
-// ── DOM refs ─────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
 const elTotal    = $("total");
@@ -28,13 +26,11 @@ const lookupInput  = $("lookup-id");
 const btnLookup    = $("btn-lookup");
 const lookupResult = $("lookup-result");
 
-// ── Boot ─────────────────────────────────────────────────
 (async () => {
   await loadFilters();
   await loadPredictions();
 })();
 
-// ── Filters ───────────────────────────────────────────────
 async function loadFilters() {
   try {
     const res  = await fetch(`${API}/filters`);
@@ -63,7 +59,6 @@ btnReset.addEventListener("click", () => {
   loadPredictions();
 });
 
-// ── Load predictions ──────────────────────────────────────
 async function loadPredictions() {
   showLoading(true);
 
@@ -88,7 +83,6 @@ async function loadPredictions() {
   }
 }
 
-// ── Summary cards ─────────────────────────────────────────
 function updateSummary(s) {
   animateCount(elTotal,   s.total          || 0);
   animateCount(elRenews,  s.renews         || 0);
@@ -110,7 +104,6 @@ function animateCount(el, target) {
   requestAnimationFrame(step);
 }
 
-// ── Bar chart ────────────────────────────────────────────
 function updateBarChart(s) {
   const total = s.total || 1;
   const bars  = [
@@ -135,7 +128,6 @@ function updateBarChart(s) {
   }).join("");
 }
 
-// ── Table ────────────────────────────────────────────────
 function renderTable(predictions) {
   tbody.innerHTML = "";
   rowCount.textContent = `${predictions.length} row${predictions.length !== 1 ? "s" : ""}`;
@@ -164,7 +156,6 @@ function renderTable(predictions) {
   tbody.appendChild(fragment);
 }
 
-// ── Single user lookup ───────────────────────────────────
 btnLookup.addEventListener("click", lookupUser);
 lookupInput.addEventListener("keydown", e => { if (e.key === "Enter") lookupUser(); });
 
@@ -212,8 +203,133 @@ async function lookupUser() {
   }
 }
 
-// ── Helpers ───────────────────────────────────────────────
 function showLoading(show) {
   tableLoad.classList.toggle("hidden", !show);
   if (show) tbody.innerHTML = "";
+}
+
+const TRANSLATIONS = {
+  en: {
+    // ── Shared header / nav ──────────────────────────────────────────────────
+    "header.label":            "Streaming Analytics",
+    "header.h1":               "Churn <em>Prediction</em>",
+    "header.sub":              "XGBoost · Multiclass · Live DB",
+    "nav.dashboard":           "Dashboard",
+    "nav.documentation":       "Documentation",
+    "nav.eda":                 "EDA",
+    "nav.github":              "GitHub Repository",
+    "footer.text":             "Churn Prediction · Portfolio Project · <a href=\"https://lauratamari.github.io/\">Personal Website</a> · <a href=\"https://github.com/lauratamari?\">GitHub</a>",
+
+    // ── index.html ──────────────────────────────────────────────────────────
+    "idx.card.total":          "Total Users",
+    "idx.card.renews":         "Renews",
+    "idx.card.cancels":        "Cancels Early",
+    "idx.card.wont":           "Won't Renew",
+    "idx.filter.country":      "Country",
+    "idx.filter.plan":         "Plan",
+    "idx.filter.billing":      "Billing",
+    "idx.btn.apply":           "Apply",
+    "idx.btn.reset":           "Reset",
+    "idx.chart.dist":          "Churn Distribution",
+    "idx.chart.lookup":        "Single User Lookup",
+    "idx.lookup.placeholder":  "User ID",
+    "idx.lookup.btn":          "Search",
+    "idx.table.title":         "All Predictions",
+    "idx.table.loading":       "Loading predictions…",
+    "idx.table.empty":         "No results found.",
+    "idx.th.userid":           "User ID",
+    "idx.th.country":          "Country",
+    "idx.th.plan":             "Plan",
+    "idx.th.billing":          "Billing",
+    "idx.th.prediction":       "Prediction",
+    "idx.th.prenews":          "P(Renews)",
+    "idx.th.pcancels":         "P(Cancels Early)",
+    "idx.th.pwont":            "P(Won't Renew)",
+  },
+
+  pt: {
+    // ── Shared header / nav ──────────────────────────────────────────────────
+    "header.label":            "Analytics de Streaming",
+    "header.h1":               "Previsão de <em>Churn</em>",
+    "header.sub":              "XGBoost · Multiclasse · BD ao Vivo",
+    "nav.dashboard":           "Painel",
+    "nav.documentation":       "Documentação",
+    "nav.eda":                 "EDA",
+    "nav.github":              "Repositório GitHub",
+    "footer.text":             "Previsão de Churn · Projeto de Portfólio · <a href=\"https://lauratamari.github.io/\">Site Pessoal</a> · <a href=\"https://github.com/lauratamari?\">GitHub</a>",
+
+    // ── index.html ──────────────────────────────────────────────────────────
+    "idx.card.total":          "Total de Usuários",
+    "idx.card.renews":         "Renova",
+    "idx.card.cancels":        "Cancela Antecipado",
+    "idx.card.wont":           "Não Renova",
+    "idx.filter.country":      "País",
+    "idx.filter.plan":         "Plano",
+    "idx.filter.billing":      "Cobrança",
+    "idx.btn.apply":           "Aplicar",
+    "idx.btn.reset":           "Resetar",
+    "idx.chart.dist":          "Distribuição de Churn",
+    "idx.chart.lookup":        "Busca por Usuário",
+    "idx.lookup.placeholder":  "ID do Usuário",
+    "idx.lookup.btn":          "Buscar",
+    "idx.table.title":         "Todas as Previsões",
+    "idx.table.loading":       "Carregando previsões…",
+    "idx.table.empty":         "Nenhum resultado encontrado.",
+    "idx.th.userid":           "ID do Usuário",
+    "idx.th.country":          "País",
+    "idx.th.plan":             "Plano",
+    "idx.th.billing":          "Cobrança",
+    "idx.th.prediction":       "Previsão",
+    "idx.th.prenews":          "P(Renova)",
+    "idx.th.pcancels":         "P(Cancela Antecipado)",
+    "idx.th.pwont":            "P(Não Renova)",
+  }
+};
+
+// ── Lang persistence ──────────────────────────────────────────────────────────
+function getLang() {
+  return localStorage.getItem('lang') || 'en';
+}
+
+function setLang(lang) {
+  localStorage.setItem('lang', lang);
+  applyLang(lang);
+  updateToggle(lang);
+  document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+}
+
+function applyLang(lang) {
+  const dict = TRANSLATIONS[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key  = el.getAttribute('data-i18n');
+    const attr = el.getAttribute('data-i18n-attr');
+    if (!dict[key]) return;
+    if (attr) {
+      el.setAttribute(attr, dict[key]);
+    } else {
+      el.innerHTML = dict[key];
+    }
+  });
+}
+
+function updateToggle(lang) {
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+}
+
+function initI18n() {
+  const lang = getLang();
+  applyLang(lang);
+  updateToggle(lang);
+  document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => setLang(btn.dataset.lang));
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initI18n);
+} else {
+  initI18n();
 }

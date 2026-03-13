@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EDA · Churn Prediction</title>
+  <link rel="stylesheet" href="style_eda.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="header-label" data-i18n="header.label">Streaming Analytics</div>
+      <h1 data-i18n="header.h1">Churn <em>Prediction</em></h1>
+      <p class="header-sub" data-i18n="header.sub">XGBoost · Multiclass · Live DB</p>
+    </div>
+  </header>
+
+  <nav class="nav-tabs">
+    <div class="nav-inner" style="align-items:center;">
+      <a href="index.html" class="nav-tab" data-i18n="nav.dashboard">Dashboard</a>
+      <a href="docs.html" class="nav-tab" data-i18n="nav.documentation">Documentation</a>
+      <a href="eda.html" class="nav-tab active" data-i18n="nav.eda">EDA</a>
+      <a href="https://github.com/lauratamari/streaming-churn-case" target="_blank" class="nav-tab" data-i18n="nav.github">GitHub Repository</a>
+      <div class="lang-toggle" style="margin-left:auto;padding-right:.5rem;">
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="pt">PT</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="docs-layout">
+    <aside class="docs-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-title" data-i18n="eda.sidebar.overview">Overview</div>
+        <a href="#overview"    class="sidebar-link" data-i18n="eda.sidebar.dataset">Dataset &amp; Setup</a>
+        <a href="#dtypes"      class="sidebar-link" data-i18n="eda.sidebar.dtypes">Data Types</a>
+        <a href="#missing"     class="sidebar-link" data-i18n="eda.sidebar.missing">Missing Values</a>
+        <a href="#descriptive" class="sidebar-link" data-i18n="eda.sidebar.descriptive">Descriptive Stats</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title" data-i18n="eda.sidebar.single">Single Variable</div>
+        <a href="#churn-dist"     class="sidebar-link" data-i18n="eda.sidebar.churndist">Churn Distribution</a>
+        <a href="#continuous"     class="sidebar-link" data-i18n="eda.sidebar.continuous">Continuous Features</a>
+        <a href="#categorical"    class="sidebar-link" data-i18n="eda.sidebar.categorical">Categorical Features</a>
+        <a href="#cancellation"   class="sidebar-link" data-i18n="eda.sidebar.cancellation">Cancellation Rate</a>
+        <a href="#churn-by-group" class="sidebar-link" data-i18n="eda.sidebar.churnbygroup">Churn by Plan &amp; Billing</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title" data-i18n="eda.sidebar.multi">Multi-Variable</div>
+        <a href="#boxplots"     class="sidebar-link" data-i18n="eda.sidebar.boxplots">Features vs Churn</a>
+        <a href="#cat-vs-churn" class="sidebar-link" data-i18n="eda.sidebar.catvschurn">Categorical vs Churn</a>
+        <a href="#correlation"  class="sidebar-link" data-i18n="eda.sidebar.correlation">Correlation</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title" data-i18n="eda.sidebar.summary">Summary</div>
+        <a href="#findings" class="sidebar-link" data-i18n="eda.sidebar.findings">Key Findings</a>
+      </div>
+    </aside>
+
+    <div class="docs-content">
+
+      <div class="doc-section" id="overview">
+        <h2 class="doc-section-title" data-i18n="eda.overview.title">Dataset <em>Overview</em></h2>
+        <p class="doc-p" data-i18n="eda.overview.p1">Data pulled from PostgreSQL via SQLAlchemy, joining six tables — users, subscriptions, engagement, support tickets, billing, and churn labels — all linked by <code>user_id</code>. Result: <strong>10,000 rows × 21 columns</strong>.</p>
+        <div class="stat-grid">
+          <div class="stat-card"><span class="stat-val">10k</span><span class="stat-label" data-i18n="eda.stat.users">Users</span></div>
+          <div class="stat-card"><span class="stat-val">21</span><span class="stat-label" data-i18n="eda.stat.features">Features</span></div>
+          <div class="stat-card"><span class="stat-val">6</span><span class="stat-label" data-i18n="eda.stat.tables">Source Tables</span></div>
+          <div class="stat-card"><span class="stat-val">3</span><span class="stat-label" data-i18n="eda.stat.classes">Churn Classes</span></div>
+        </div>
+        <div class="doc-subsection-title" data-i18n="eda.overview.groups">Column Groups</div>
+        <table class="state-table">
+          <thead><tr><th data-i18n="eda.overview.th.group">Group</th><th data-i18n="eda.overview.th.type">Type</th><th data-i18n="eda.overview.th.columns">Columns</th></tr></thead>
+          <tbody>
+            <tr><td><strong data-i18n="eda.overview.td.continuous">Continuous</strong></td><td><span class="type-badge">float / int</span></td><td>age, avg_watch_hours_per_week, number_of_logins_per_week, days_since_last_watch, completion_rate, monthly_price, yearly_price, payment_failures</td></tr>
+            <tr><td><strong data-i18n="eda.overview.td.categorical">Categorical</strong></td><td><span class="type-badge">object / bool</span></td><td>country, plan, billing_cycle, price_increase_last_6m</td></tr>
+            <tr><td><strong data-i18n="eda.overview.td.date">Date</strong></td><td><span class="type-badge">datetime64</span></td><td>signup_date, start_date, cancellation_date, last_renewal_date, next_renewal_date</td></tr>
+            <tr><td><strong data-i18n="eda.overview.td.target">Target</strong></td><td><span class="type-badge">int / bool</span></td><td>churn_type (0/1/2), cancelled</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-section" id="dtypes">
+        <h2 class="doc-section-title" data-i18n="eda.dtypes.title">Data Type <em>Corrections</em></h2>
+        <p class="doc-p" data-i18n="eda.dtypes.p1">On initial load all five date columns were <code>object</code> (string). Cast before analysis:</p>
+        <div class="code-block"><span class="val">date_cols</span> = [<span class="str">'signup_date'</span>, <span class="str">'start_date'</span>, <span class="str">'cancellation_date'</span>,
+             <span class="str">'last_renewal_date'</span>, <span class="str">'next_renewal_date'</span>]
+df[<span class="val">date_cols</span>] = df[<span class="val">date_cols</span>].<span class="fn">apply</span>(pd.<span class="fn">to_datetime</span>)</div>
+      </div>
+
+      <div class="doc-section" id="missing">
+        <h2 class="doc-section-title" data-i18n="eda.missing.title">Missing <em>Values</em></h2>
+        <p class="doc-p" data-i18n="eda.missing.p1">Only two columns contain nulls — both expected by design. All other 19 columns are fully populated.</p>
+        <table class="state-table">
+          <thead><tr><th data-i18n="eda.missing.th.column">Column</th><th data-i18n="eda.missing.th.nulls">Nulls</th><th data-i18n="eda.missing.th.reason">Reason</th></tr></thead>
+          <tbody>
+            <tr><td><code>yearly_price</code></td><td>4,946</td><td data-i18n="eda.missing.td.yearly">Only populated for yearly subscribers (~50% of users).</td></tr>
+            <tr><td><code>cancellation_date</code></td><td>8,496</td><td data-i18n="eda.missing.td.cancellation">Only populated when a user has actually cancelled (15% of users).</td></tr>
+          </tbody>
+        </table>
+        <div class="callout" data-i18n="eda.missing.callout">No imputation required. The dataset is clean and ready for analysis.</div>
+      </div>
+
+      <div class="doc-section" id="descriptive">
+        <h2 class="doc-section-title" data-i18n="eda.descriptive.title">Descriptive <em>Statistics</em></h2>
+        <p class="doc-p" data-i18n="eda.descriptive.p1">Continuous features show broadly uniform distributions — consistent with synthetic data designed to cover a wide variety of user profiles.</p>
+        <table class="state-table">
+          <thead><tr><th data-i18n="eda.descriptive.th.feature">Feature</th><th data-i18n="eda.descriptive.th.min">Min</th><th data-i18n="eda.descriptive.th.median">Median</th><th data-i18n="eda.descriptive.th.max">Max</th><th data-i18n="eda.descriptive.th.std">Std</th></tr></thead>
+          <tbody>
+            <tr><td><code>age</code></td><td>18</td><td>42</td><td>65</td><td>13.8</td></tr>
+            <tr><td><code>avg_watch_hours_per_week</code></td><td>0.01</td><td>10.13</td><td>20.00</td><td>5.80</td></tr>
+            <tr><td><code>number_of_logins_per_week</code></td><td>0</td><td>10</td><td>20</td><td>6.13</td></tr>
+            <tr><td><code>days_since_last_watch</code></td><td>0</td><td>30</td><td>60</td><td>17.6</td></tr>
+            <tr><td><code>completion_rate</code></td><td>0.20</td><td>0.60</td><td>1.00</td><td>0.23</td></tr>
+            <tr><td><code>payment_failures</code></td><td>0</td><td>1</td><td>2</td><td>0.82</td></tr>
+            <tr><td><code>tickets_last_30d</code></td><td>0</td><td>2</td><td>5</td><td>1.71</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-section" id="churn-dist">
+        <h2 class="doc-section-title" data-i18n="eda.churndist.title">Churn <em>Distribution</em></h2>
+        <p class="doc-p" data-i18n="eda.churndist.p1">The target variable <code>churn_type</code> is heavily imbalanced. Class 0 dominates at 76.7%; Class 1 is the critical minority at just 3.7%.</p>
+        <div class="stat-grid">
+          <div class="stat-card green"><span class="stat-val">76.7%</span><span class="stat-label" data-i18n="eda.stat.renews">Renews · 7,672 users</span></div>
+          <div class="stat-card amber"><span class="stat-val">3.7%</span><span class="stat-label" data-i18n="eda.stat.cancels">Cancels Early · 372 users</span></div>
+          <div class="stat-card red"><span class="stat-val">19.6%</span><span class="stat-label" data-i18n="eda.stat.wont">Won't Renew · 1,956 users</span></div>
+          <div class="stat-card"><span class="stat-val">15%</span><span class="stat-label" data-i18n="eda.stat.cancelled">Formally Cancelled · 1,504</span></div>
+        </div>
+        <div class="two-col">
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.cancelled.title">Cancelled flag</span></div>
+            <div class="chart-body">
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Not Cancelled</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:85%"></div></div>
+                <span class="h-bar-val">8,496</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Cancelled</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-red" style="width:15%"></div></div>
+                <span class="h-bar-val">1,504</span>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.cancelled.caption">85% of users have not formally cancelled.</div>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.churntype.title">Churn type (multiclass target)</span></div>
+            <div class="chart-body">
+              <div class="h-bar-row">
+                <span class="h-bar-label short">0 · Renews</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-green" style="width:76.7%"></div></div>
+                <span class="h-bar-val">76.7%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">2 · Won't Renew</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-red" style="width:19.6%"></div></div>
+                <span class="h-bar-val">19.6%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">1 · Cancels Early</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-amber" style="width:3.7%"></div></div>
+                <span class="h-bar-val">3.7%</span>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.churntype.caption">Class 1 is severely underrepresented — only 372 users.</div>
+          </div>
+        </div>
+        <div class="callout amber" data-i18n="eda.churndist.callout">Class 1 (Cancels Early) at 3.7% is severely underrepresented. Accuracy alone will be misleading — use F1-score and ROC-AUC per class, with class weighting applied during training.</div>
+      </div>
+
+      <div class="doc-section" id="continuous">
+        <h2 class="doc-section-title" data-i18n="eda.continuous.title">Continuous Feature <em>Distributions</em></h2>
+        <p class="doc-p" data-i18n="eda.continuous.p1">Near-uniform distributions across most features reflect the synthetic nature of the dataset. Monthly and yearly price are discrete — three values per plan tier. Payment failures and tickets are capped integers.</p>
+        <div class="two-col">
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.watch.title">Avg watch hours / week</span></div>
+            <div class="chart-body" id="watch-hist"></div>
+            <div class="chart-caption" data-i18n="eda.chart.watch.caption">Uniform 0–20 hrs, mean ~10.</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.days.title">Days since last watch</span></div>
+            <div class="chart-body" id="days-hist"></div>
+            <div class="chart-caption" data-i18n="eda.chart.days.caption">Uniform 0–60 days, mean ~30. Strongest churn predictor.</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.logins.title">Logins / week</span></div>
+            <div class="chart-body" id="login-hist"></div>
+            <div class="chart-caption" data-i18n="eda.chart.logins.caption">Uniform 0–20, mean ~10.</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.completion.title">Completion rate</span></div>
+            <div class="chart-body" id="completion-hist"></div>
+            <div class="chart-caption" data-i18n="eda.chart.completion.caption">Uniform 0.20–1.00, mean ~0.60.</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.price.title">Monthly price (USD) — discrete</span></div>
+            <div class="chart-body">
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">$9.99</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:33%"></div></div>
+                <span class="h-bar-val">Basic</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">$14.99</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:33%"></div></div>
+                <span class="h-bar-val">Standard</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">$19.99</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:33%"></div></div>
+                <span class="h-bar-val">Premium</span>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.price.caption">Three price points mapping directly to plan tiers.</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.failures.title">Payment failures — capped at 2</span></div>
+            <div class="chart-body">
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">0 failures</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-green" style="width:40%"></div></div>
+                <span class="h-bar-val">~40%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">1 failure</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-amber" style="width:30%"></div></div>
+                <span class="h-bar-val">~30%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">2 failures</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-red" style="width:30%"></div></div>
+                <span class="h-bar-val">~30%</span>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.failures.caption">Capped integer — max 2, mean 1.00.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="doc-section" id="categorical">
+        <h2 class="doc-section-title" data-i18n="eda.categorical.title">Categorical Feature <em>Distributions</em></h2>
+        <p class="doc-p" data-i18n="eda.categorical.p1">Plans and billing cycles are roughly balanced. Countries span multiple regions. Price increase is a boolean split approximately evenly across the dataset.</p>
+        <div class="two-col">
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.plan.title">Plan tier</span></div>
+            <div class="chart-body">
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Basic</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:33%"></div></div>
+                <span class="h-bar-val">~3,330</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Standard</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:33%"></div></div>
+                <span class="h-bar-val">~3,330</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Premium</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:33%"></div></div>
+                <span class="h-bar-val">~3,340</span>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.plan.caption">Perfectly balanced across all three plan tiers.</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.billing.title">Billing cycle</span></div>
+            <div class="chart-body">
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Monthly</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:49%"></div></div>
+                <span class="h-bar-val">4,946</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Yearly</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-blue" style="width:51%"></div></div>
+                <span class="h-bar-val">5,054</span>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.billing.caption">Near-even monthly / yearly split (~50/50).</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.priceinc.title">Price increase last 6m</span></div>
+            <div class="chart-body">
+              <div class="h-bar-row">
+                <span class="h-bar-label short">No increase</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-green" style="width:52%"></div></div>
+                <span class="h-bar-val">~52%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Increased</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-amber" style="width:48%"></div></div>
+                <span class="h-bar-val">~48%</span>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.priceinc.caption">Nearly half the userbase experienced a recent price increase.</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.country.title">Country (representative sample)</span></div>
+            <div class="chart-body">
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">Brazil</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:75%"></div></div>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">USA</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:70%"></div></div>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">Argentina</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:65%"></div></div>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">Portugal</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:60%"></div></div>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">S. Korea</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:55%"></div></div>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">Mexico</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:50%"></div></div>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.country.caption">Multiple regions with no single dominant country.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="doc-section" id="cancellation">
+        <h2 class="doc-section-title" data-i18n="eda.cancellation.title">Cancellation Rate <em>Analysis</em></h2>
+        <p class="doc-p" data-i18n="eda.cancellation.p1">15% of users have formally cancelled. Monthly subscribers and exposure to price increases show elevated cancellation rates.</p>
+        <div class="two-col">
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.cancel.billing.title">Cancellation &amp; churn rate by billing cycle</span></div>
+            <div class="chart-body">
+              <div class="doc-subsection-title" style="margin-bottom:.6rem" data-i18n="eda.chart.cancel.rate">Cancellation rate</div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Monthly</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-red" style="width:100%"></div></div>
+                <span class="h-bar-val">~21%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Yearly</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-blue" style="width:38%"></div></div>
+                <span class="h-bar-val">~8%</span>
+              </div>
+              <hr class="chart-divider">
+              <div class="doc-subsection-title" style="margin-bottom:.6rem" data-i18n="eda.chart.churn.rate">Churn rate (type ≠ 0)</div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Monthly</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-red" style="width:100%"></div></div>
+                <span class="h-bar-val">~26%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Yearly</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-blue" style="width:77%"></div></div>
+                <span class="h-bar-val">~20%</span>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.cancel.billing.caption">Monthly subscribers are significantly more likely to cancel — consistent with lower commitment.</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.cancel.plan.title">Cancellation rate by plan</span></div>
+            <div class="chart-body">
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Basic</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:94%"></div></div>
+                <span class="h-bar-val">~15%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Standard</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:100%"></div></div>
+                <span class="h-bar-val">~16%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Premium</span>
+                <div class="h-bar-track"><div class="h-bar-fill fill-accent" style="width:88%"></div></div>
+                <span class="h-bar-val">~14%</span>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.cancel.plan.caption">Broadly similar across plan tiers — no tier stands out.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="doc-section" id="churn-by-group">
+        <h2 class="doc-section-title" data-i18n="eda.churnbygroup.title">Churn Type by Plan <em>&amp; Billing Cycle</em></h2>
+        <p class="doc-p" data-i18n="eda.churnbygroup.p1">Percentage breakdown of churn_type within each group. All segments are dominated by Renews (class 0) consistent with the 76.7% baseline. Monthly subscribers show slightly more early cancellations.</p>
+        <div class="two-col">
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.churnplan.title">Churn type by plan (%)</span></div>
+            <div class="chart-body">
+              <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Renews</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Cancels Early</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Won't Renew</div>
+              </div>
+              <div class="stacked-row">
+                <span class="stacked-label">Basic</span>
+                <div class="stacked-bar">
+                  <div class="stacked-seg" style="width:77%;background:var(--green)"></div>
+                  <div class="stacked-seg" style="width:3%;background:var(--amber)"></div>
+                  <div class="stacked-seg" style="width:20%;background:var(--red)"></div>
+                </div>
+              </div>
+              <div class="stacked-row">
+                <span class="stacked-label">Standard</span>
+                <div class="stacked-bar">
+                  <div class="stacked-seg" style="width:76%;background:var(--green)"></div>
+                  <div class="stacked-seg" style="width:4%;background:var(--amber)"></div>
+                  <div class="stacked-seg" style="width:20%;background:var(--red)"></div>
+                </div>
+              </div>
+              <div class="stacked-row">
+                <span class="stacked-label">Premium</span>
+                <div class="stacked-bar">
+                  <div class="stacked-seg" style="width:77%;background:var(--green)"></div>
+                  <div class="stacked-seg" style="width:4%;background:var(--amber)"></div>
+                  <div class="stacked-seg" style="width:19%;background:var(--red)"></div>
+                </div>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.churnplan.caption">Distribution is broadly consistent across plan tiers.</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.churnbilling.title">Churn type by billing cycle (%)</span></div>
+            <div class="chart-body">
+              <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Renews</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Cancels Early</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Won't Renew</div>
+              </div>
+              <div class="stacked-row">
+                <span class="stacked-label">Monthly</span>
+                <div class="stacked-bar">
+                  <div class="stacked-seg" style="width:74%;background:var(--green)"></div>
+                  <div class="stacked-seg" style="width:5%;background:var(--amber)"></div>
+                  <div class="stacked-seg" style="width:21%;background:var(--red)"></div>
+                </div>
+              </div>
+              <div class="stacked-row">
+                <span class="stacked-label">Yearly</span>
+                <div class="stacked-bar">
+                  <div class="stacked-seg" style="width:79%;background:var(--green)"></div>
+                  <div class="stacked-seg" style="width:3%;background:var(--amber)"></div>
+                  <div class="stacked-seg" style="width:18%;background:var(--red)"></div>
+                </div>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.churnbilling.caption">Monthly subscribers show a slightly higher share of early cancellations vs yearly.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="doc-section" id="boxplots">
+        <h2 class="doc-section-title" data-i18n="eda.boxplots.title">Continuous Features <em>vs Churn</em></h2>
+        <p class="doc-p" data-i18n="eda.boxplots.p1">IQR ranges and medians for each feature split by churn class. <code>days_since_last_watch</code> shows the only clear class separation — churning users have not watched recently.</p>
+
+        <div class="chart-wrap">
+          <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.box.title">Feature distributions by churn class — IQR + median</span></div>
+          <div class="chart-body">
+            <div class="legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#4a7fa5"></div>Renews</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Cancels Early</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Won't Renew</div>
+            </div>
+            <div class="box-plot-grid" id="box-plots"></div>
+          </div>
+          <div class="chart-caption" data-i18n="eda.chart.box.caption">Each row of boxes shows the IQR (25th–75th percentile) with a median marker per class. days_since_last_watch is the only feature with meaningful visual separation.</div>
+        </div>
+
+        <div class="callout" data-i18n="eda.boxplots.callout">days_since_last_watch is the clearest visual separator between churn classes. Churning users (classes 1 &amp; 2) show higher medians and wider spreads than renewing users — validating the correlation result (r = +0.623).</div>
+      </div>
+
+      <div class="doc-section" id="cat-vs-churn">
+        <h2 class="doc-section-title" data-i18n="eda.catvschurn.title">Categorical Features <em>vs Churn Rate</em></h2>
+        <p class="doc-p" data-i18n="eda.catvschurn.p1">Churn rate (% with churn_type ≠ 0) per categorical value. The vertical marker shows the overall average of <strong>23.3%</strong>.</p>
+
+        <div class="two-col">
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.cvsc.billing.title">Churn rate by billing cycle &mdash; avg 23.3%</span></div>
+            <div class="chart-body">
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Monthly</span>
+                <div class="h-bar-track">
+                  <div class="h-bar-fill fill-red" style="width:56%"></div>
+                  <div class="ref-line" style="left:40%"></div>
+                </div>
+                <span class="h-bar-val">~26%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Yearly</span>
+                <div class="h-bar-track">
+                  <div class="h-bar-fill fill-blue" style="width:43%"></div>
+                  <div class="ref-line" style="left:40%"></div>
+                </div>
+                <span class="h-bar-val">~20%</span>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.cvsc.billing.caption">Monthly above average; yearly below. Vertical line = 23.3% avg.</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.cvsc.priceinc.title">Churn rate by price increase &mdash; avg 23.3%</span></div>
+            <div class="chart-body">
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Increased</span>
+                <div class="h-bar-track">
+                  <div class="h-bar-fill fill-red" style="width:69%"></div>
+                  <div class="ref-line" style="left:40%"></div>
+                </div>
+                <span class="h-bar-val">~32%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">No increase</span>
+                <div class="h-bar-track">
+                  <div class="h-bar-fill fill-green" style="width:30%"></div>
+                  <div class="ref-line" style="left:40%"></div>
+                </div>
+                <span class="h-bar-val">~14%</span>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.cvsc.priceinc.caption">Largest deviation from average — price hike users are ~2× more likely to churn.</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.cvsc.plan.title">Churn rate by plan &mdash; avg 23.3%</span></div>
+            <div class="chart-body">
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Basic</span>
+                <div class="h-bar-track">
+                  <div class="h-bar-fill fill-accent" style="width:50%"></div>
+                  <div class="ref-line" style="left:40%"></div>
+                </div>
+                <span class="h-bar-val">~23%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Standard</span>
+                <div class="h-bar-track">
+                  <div class="h-bar-fill fill-accent" style="width:50%"></div>
+                  <div class="ref-line" style="left:40%"></div>
+                </div>
+                <span class="h-bar-val">~23%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label short">Premium</span>
+                <div class="h-bar-track">
+                  <div class="h-bar-fill fill-accent" style="width:47%"></div>
+                  <div class="ref-line" style="left:40%"></div>
+                </div>
+                <span class="h-bar-val">~22%</span>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.cvsc.plan.caption">Minimal variation — all three plan tiers sit near the overall average.</div>
+          </div>
+
+          <div class="chart-wrap">
+            <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.cvsc.country.title">Churn rate by country (sample) &mdash; avg 23.3%</span></div>
+            <div class="chart-body">
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">Brazil</span>
+                <div class="h-bar-track">
+                  <div class="h-bar-fill fill-accent" style="width:52%"></div>
+                  <div class="ref-line" style="left:40%"></div>
+                </div>
+                <span class="h-bar-val">~24%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">Portugal</span>
+                <div class="h-bar-track">
+                  <div class="h-bar-fill fill-accent" style="width:48%"></div>
+                  <div class="ref-line" style="left:40%"></div>
+                </div>
+                <span class="h-bar-val">~22%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">Argentina</span>
+                <div class="h-bar-track">
+                  <div class="h-bar-fill fill-accent" style="width:50%"></div>
+                  <div class="ref-line" style="left:40%"></div>
+                </div>
+                <span class="h-bar-val">~23%</span>
+              </div>
+              <div class="h-bar-row">
+                <span class="h-bar-label xs">S. Korea</span>
+                <div class="h-bar-track">
+                  <div class="h-bar-fill fill-accent" style="width:54%"></div>
+                  <div class="ref-line" style="left:40%"></div>
+                </div>
+                <span class="h-bar-val">~25%</span>
+              </div>
+            </div>
+            <div class="chart-caption" data-i18n="eda.chart.cvsc.country.caption">Geographic signals exist but are weak — all near the overall average.</div>
+          </div>
+
+        </div>
+
+        <div class="fn-grid">
+          <div class="fn-card">
+            <div class="fn-card-header"><span class="fn-name">billing_cycle</span><span class="fn-async" data-i18n="eda.badge.signal" style="background:var(--amber-bg);color:var(--amber)">signal</span></div>
+            <div class="fn-card-body"><p class="fn-desc" data-i18n="eda.signal.billing.desc">Monthly subscribers churn at a meaningfully higher rate than yearly subscribers.</p></div>
+          </div>
+          <div class="fn-card">
+            <div class="fn-card-header"><span class="fn-name">price_increase_last_6m</span><span class="fn-async" data-i18n="eda.badge.signal" style="background:var(--amber-bg);color:var(--amber)">signal</span></div>
+            <div class="fn-card-body"><p class="fn-desc" data-i18n="eda.signal.priceinc.desc">Largest categorical deviation — users who saw a price hike are ~2× more likely to churn.</p></div>
+          </div>
+          <div class="fn-card">
+            <div class="fn-card-header"><span class="fn-name">plan</span><span class="fn-async" data-i18n="eda.badge.weak" style="background:var(--green-bg);color:var(--green)">weak</span></div>
+            <div class="fn-card-body"><p class="fn-desc" data-i18n="eda.signal.plan.desc">All three plan tiers sit right at the overall average. Minimal predictive signal on its own.</p></div>
+          </div>
+          <div class="fn-card">
+            <div class="fn-card-header"><span class="fn-name">country</span><span class="fn-async" data-i18n="eda.badge.weak" style="background:var(--green-bg);color:var(--green)">weak</span></div>
+            <div class="fn-card-body"><p class="fn-desc" data-i18n="eda.signal.country.desc">Slight regional variation but no country deviates dramatically from the mean.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-section" id="correlation">
+        <h2 class="doc-section-title" data-i18n="eda.correlation.title">Feature <em>Correlation</em></h2>
+        <p class="doc-p" data-i18n="eda.correlation.p1">Pearson correlations between all 8 continuous features and a binary churn indicator (1 if churn_type ≠ 0), sorted by absolute strength.</p>
+
+        <div class="chart-wrap">
+          <div class="chart-header"><span class="chart-title" data-i18n="eda.chart.corr.title">Correlation with churn target (Pearson r) — bar width = absolute strength</span></div>
+          <div class="chart-body">
+            <div class="h-bar-row">
+              <span class="h-bar-label">days_since_last_watch</span>
+              <div class="h-bar-track"><div class="h-bar-fill fill-red" style="width:100%"></div></div>
+              <span class="h-bar-val strong">+0.623</span>
+            </div>
+            <div class="h-bar-row">
+              <span class="h-bar-label">avg_watch_hours_pw</span>
+              <div class="h-bar-track"><div class="h-bar-fill fill-muted" style="width:3.8%"></div></div>
+              <span class="h-bar-val">&minus;0.024</span>
+            </div>
+            <div class="h-bar-row">
+              <span class="h-bar-label">yearly_price</span>
+              <div class="h-bar-track"><div class="h-bar-fill fill-muted" style="width:3.5%"></div></div>
+              <span class="h-bar-val">+0.022</span>
+            </div>
+            <div class="h-bar-row">
+              <span class="h-bar-label">monthly_price</span>
+              <div class="h-bar-track"><div class="h-bar-fill fill-muted" style="width:2%"></div></div>
+              <span class="h-bar-val">+0.013</span>
+            </div>
+            <div class="h-bar-row">
+              <span class="h-bar-label">payment_failures</span>
+              <div class="h-bar-track"><div class="h-bar-fill fill-muted" style="width:1.2%"></div></div>
+              <span class="h-bar-val">&minus;0.008</span>
+            </div>
+            <div class="h-bar-row">
+              <span class="h-bar-label">age</span>
+              <div class="h-bar-track"><div class="h-bar-fill fill-muted" style="width:0.6%"></div></div>
+              <span class="h-bar-val">+0.004</span>
+            </div>
+            <div class="h-bar-row">
+              <span class="h-bar-label">logins_per_week</span>
+              <div class="h-bar-track"><div class="h-bar-fill fill-muted" style="width:0.4%"></div></div>
+              <span class="h-bar-val">&minus;0.003</span>
+            </div>
+            <div class="h-bar-row">
+              <span class="h-bar-label">completion_rate</span>
+              <div class="h-bar-track"><div class="h-bar-fill fill-muted" style="width:0.3%"></div></div>
+              <span class="h-bar-val">+0.002</span>
+            </div>
+          </div>
+          <div class="chart-caption" data-i18n="eda.chart.corr.caption">days_since_last_watch (r = +0.623) towers above all others. The near-zero values for all remaining features indicate the model must rely on non-linear interactions.</div>
+        </div>
+
+        <div class="callout red" data-i18n="eda.correlation.callout">days_since_last_watch is by far the strongest linear predictor. All other continuous features show near-zero correlation — suggesting non-linear interactions and categorical features carry most of the remaining predictive power. This is why XGBoost is well-suited to this problem.</div>
+      </div>
+
+      <div class="doc-section" id="findings">
+        <h2 class="doc-section-title" data-i18n="eda.findings.title">Key Findings &amp; <em>Implications</em></h2>
+        <p class="doc-p" data-i18n="eda.findings.p1">Summary of the most important EDA findings and their implications for the modelling pipeline.</p>
+
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
+          <table class="findings-table">
+            <thead><tr><th data-i18n="eda.findings.th.num">#</th><th data-i18n="eda.findings.th.finding">Finding</th><th data-i18n="eda.findings.th.implication">Implication</th></tr></thead>
+            <tbody>
+              <tr><td class="num-cell">1</td><td data-i18n="eda.findings.td.f1">Strong class imbalance: 76.7% Renews, 3.7% Cancels Early</td><td data-i18n="eda.findings.td.i1">Use class weighting; evaluate with F1 / ROC-AUC per class, not accuracy</td></tr>
+              <tr><td class="num-cell">2</td><td data-i18n="eda.findings.td.f2"><code>days_since_last_watch</code> r = +0.623 — far above all other features</td><td data-i18n="eda.findings.td.i2">Expected top feature; validate via SHAP post-training</td></tr>
+              <tr><td class="num-cell">3</td><td data-i18n="eda.findings.td.f3">Most continuous features have near-zero linear correlation with churn</td><td data-i18n="eda.findings.td.i3">Non-linear XGBoost interactions may capture patterns Pearson misses</td></tr>
+              <tr><td class="num-cell">4</td><td data-i18n="eda.findings.td.f4">Monthly subscribers churn at a higher rate than yearly</td><td data-i18n="eda.findings.td.i4"><code>billing_cycle</code> is a meaningful categorical signal</td></tr>
+              <tr><td class="num-cell">5</td><td data-i18n="eda.findings.td.f5">Price increase in last 6m is strongly associated with churn</td><td data-i18n="eda.findings.td.i5"><code>price_increase_last_6m</code> is a high-value boolean feature</td></tr>
+              <tr><td class="num-cell">6</td><td data-i18n="eda.findings.td.f6">No missing values in any predictive feature</td><td data-i18n="eda.findings.td.i6">No imputation needed; exclude <code>cancellation_date</code> from model inputs</td></tr>
+              <tr><td class="num-cell">7</td><td data-i18n="eda.findings.td.f7">Date fields required casting from string to datetime64</td><td data-i18n="eda.findings.td.i7">Pre-processing must cast types before any date-based feature engineering</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="doc-subsection-title" style="margin-top:.8rem" data-i18n="eda.findings.output">Output</div>
+        <p class="doc-p" data-i18n="eda.findings.output.p">The cleaned DataFrame was exported to Parquet for use in the modelling notebook:</p>
+        <div class="code-block">df.<span class="fn">to_parquet</span>(<span class="str">'data/clean_data.parquet'</span>, index=<span class="kw">False</span>)</div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <span data-i18n="footer.text">Churn Prediction · Portfolio Project · <a href="https://lauratamari.github.io/">Personal Website</a> · <a href="https://github.com/lauratamari?">GitHub</a></span>
+  </footer>
+    <script src="script_eda.js"></script>
+</body>
+</html>

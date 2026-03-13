@@ -9,106 +9,105 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-
   <header>
     <div class="header-inner">
-      <div class="header-label">Streaming Analytics</div>
-      <h1>Churn <em>Prediction</em></h1>
-      <p class="header-sub">XGBoost · Multiclass · Live DB</p>
+      <div class="header-label" data-i18n="header.label">Streaming Analytics</div>
+      <h1 data-i18n="header.h1">Churn <em>Prediction</em></h1>
+      <p class="header-sub" data-i18n="header.sub">XGBoost · Multiclass · Live DB</p>
     </div>
   </header>
-
+  <nav class="nav-tabs">
+    <div class="header-inner" style="display:flex;padding-top:0;padding-bottom:0;align-items:center;">
+      <a href="index.html" class="nav-tab active" data-i18n="nav.dashboard">Dashboard</a>
+      <a href="docs.html" class="nav-tab" data-i18n="nav.documentation">Documentation</a>
+      <a href="eda.html" class="nav-tab" data-i18n="nav.eda">EDA</a>
+      <a href="https://github.com/lauratamari/streaming-churn-case" target="_blank" class="nav-tab" data-i18n="nav.github">GitHub Repository</a>
+      <div class="lang-toggle" style="margin-left:auto;padding-right:.5rem;">
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="pt">PT</button>
+      </div>
+    </div>
+  </nav>
   <main>
-
-    <!-- ── Summary cards ─────────────────────────────────── -->
     <section class="summary" id="summary">
       <div class="card" id="card-total">
         <span class="card-value" id="total">—</span>
-        <span class="card-label">Total Users</span>
+        <span class="card-label" data-i18n="idx.card.total">Total Users</span>
       </div>
       <div class="card card-green" id="card-renews">
         <span class="card-value" id="renews">—</span>
-        <span class="card-label">Renews</span>
+        <span class="card-label" data-i18n="idx.card.renews">Renews</span>
       </div>
       <div class="card card-amber" id="card-cancels">
         <span class="card-value" id="cancels">—</span>
-        <span class="card-label">Cancels Early</span>
+        <span class="card-label" data-i18n="idx.card.cancels">Cancels Early</span>
       </div>
       <div class="card card-red" id="card-wont">
         <span class="card-value" id="wont">—</span>
-        <span class="card-label">Won't Renew</span>
+        <span class="card-label" data-i18n="idx.card.wont">Won't Renew</span>
       </div>
     </section>
-
-    <!-- ── Filters ────────────────────────────────────────── -->
     <section class="filters">
       <div class="filter-group">
-        <label for="f-country">Country</label>
+        <label for="f-country" data-i18n="idx.filter.country">Country</label>
         <select id="f-country"><option value="">All</option></select>
       </div>
       <div class="filter-group">
-        <label for="f-plan">Plan</label>
+        <label for="f-plan" data-i18n="idx.filter.plan">Plan</label>
         <select id="f-plan"><option value="">All</option></select>
       </div>
       <div class="filter-group">
-        <label for="f-cycle">Billing</label>
+        <label for="f-cycle" data-i18n="idx.filter.billing">Billing</label>
         <select id="f-cycle"><option value="">All</option></select>
       </div>
-      <button id="btn-apply">Apply</button>
-      <button id="btn-reset" class="btn-ghost">Reset</button>
+      <button id="btn-apply" data-i18n="idx.btn.apply">Apply</button>
+      <button id="btn-reset" class="btn-ghost" data-i18n="idx.btn.reset">Reset</button>
     </section>
-
-    <!-- ── Charts ────────────────────────────────────────── -->
     <section class="charts">
       <div class="chart-box">
-        <h2>Churn Distribution</h2>
+        <h2 data-i18n="idx.chart.dist">Churn Distribution</h2>
         <div class="bar-chart" id="bar-chart"></div>
       </div>
       <div class="chart-box">
-        <h2>Single User Lookup</h2>
+        <h2 data-i18n="idx.chart.lookup">Single User Lookup</h2>
         <div class="lookup">
           <div class="lookup-input-row">
-            <input type="number" id="lookup-id" placeholder="User ID" min="1" />
-            <button id="btn-lookup">Search</button>
+            <input type="number" id="lookup-id" data-i18n="idx.lookup.placeholder" data-i18n-attr="placeholder" placeholder="User ID" min="1" />
+            <button id="btn-lookup" data-i18n="idx.lookup.btn">Search</button>
           </div>
           <div id="lookup-result" class="lookup-result hidden"></div>
         </div>
       </div>
     </section>
-
-    <!-- ── Table ─────────────────────────────────────────── -->
     <section class="table-section">
       <div class="table-header-row">
-        <h2>All Predictions</h2>
+        <h2 data-i18n="idx.table.title">All Predictions</h2>
         <span id="row-count" class="row-count"></span>
       </div>
       <div class="table-wrap">
         <table id="pred-table">
           <thead>
             <tr>
-              <th>User ID</th>
-              <th>Country</th>
-              <th>Plan</th>
-              <th>Billing</th>
-              <th>Prediction</th>
-              <th>P(Renews)</th>
-              <th>P(Cancels Early)</th>
-              <th>P(Won't Renew)</th>
+              <th data-i18n="idx.th.userid">User ID</th>
+              <th data-i18n="idx.th.country">Country</th>
+              <th data-i18n="idx.th.plan">Plan</th>
+              <th data-i18n="idx.th.billing">Billing</th>
+              <th data-i18n="idx.th.prediction">Prediction</th>
+              <th data-i18n="idx.th.prenews">P(Renews)</th>
+              <th data-i18n="idx.th.pcancels">P(Cancels Early)</th>
+              <th data-i18n="idx.th.pwont">P(Won't Renew)</th>
             </tr>
           </thead>
           <tbody id="pred-tbody"></tbody>
         </table>
-        <div id="table-empty" class="table-empty hidden">No results found.</div>
-        <div id="table-loading" class="table-loading">Loading predictions…</div>
+        <div id="table-empty" class="table-empty hidden" data-i18n="idx.table.empty">No results found.</div>
+        <div id="table-loading" class="table-loading" data-i18n="idx.table.loading">Loading predictions…</div>
       </div>
     </section>
-
   </main>
-
   <footer>
-    <span>Churn Prediction · Portfolio Project · <a href="https://lauratamari.github.io/">Personal Website</a> · <a href="https://github.com/lauratamari?">GitHub</a></span>
+    <span data-i18n="footer.text">Churn Prediction · Portfolio Project · <a href="https://lauratamari.github.io/">Personal Website</a> · <a href="https://github.com/lauratamari?">GitHub</a></span>
   </footer>
-
   <script src="script.js"></script>
 </body>
 </html>
