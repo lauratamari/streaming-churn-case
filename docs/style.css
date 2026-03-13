@@ -504,47 +504,65 @@ footer {
 }
 
 @media (max-width: 560px) {
-  /* Header */
+  /* ── Header ── */
   header {
     padding: 1.5rem 1rem 1.2rem;
   }
 
-  /* Nav: scroll horizontally, never wrap */
+  /* ── Nav: horizontal scroll, no wrap ── */
   .nav-tabs {
+    padding: 0;                          /* kill the 2.5rem side padding */
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding: 0 1rem;
   }
 
   .nav-tabs::-webkit-scrollbar {
     display: none;
   }
 
+  /* index.html uses .header-inner as the nav flex container */
   .nav-tabs .header-inner {
     display: flex;
+    align-items: center;
     flex-wrap: nowrap;
     min-width: max-content;
-    padding-left: 0;
-    padding-right: 0;
+    max-width: none;           /* override the 1200px cap */
+    margin: 0;
+    padding: 0 1rem;           /* re-add padding INSIDE the scrollable row */
+    gap: 0;
+  }
+
+  /* eda/docs use .nav-inner */
+  .nav-tabs .nav-inner {
+    flex-wrap: nowrap;
+    min-width: max-content;
+    max-width: none;
+    margin: 0;
+    padding: 0 1rem;
+    gap: 0;
   }
 
   .nav-tab {
     white-space: nowrap;
-    padding: .75rem .9rem;
+    padding: .75rem .85rem;
+    flex-shrink: 0;
   }
 
+  /* Keep lang toggle inline, don't let it break to a new line */
   .lang-toggle {
-    padding-right: .5rem;
+    flex-shrink: 0;
+    margin-left: auto;
+    padding: 0 .5rem 0 .75rem;
   }
 
-  /* Main content */
+  /* ── Main ── */
   main {
     padding: 1.2rem .9rem 3rem;
     gap: 1.5rem;
   }
 
-  /* Summary cards */
+  /* ── Summary cards ── */
   .summary {
     grid-template-columns: repeat(2, 1fr);
     gap: .7rem;
@@ -562,7 +580,7 @@ footer {
     font-size: .62rem;
   }
 
-  /* Filters: stack vertically */
+  /* ── Filters: fully stacked ── */
   .filters {
     flex-direction: column;
     align-items: stretch;
@@ -584,7 +602,7 @@ footer {
     width: 100%;
   }
 
-  /* Charts */
+  /* ── Charts ── */
   .chart-box {
     padding: 1.1rem 1rem;
   }
@@ -594,22 +612,18 @@ footer {
     margin-bottom: .9rem;
   }
 
-  /* Lookup */
+  /* ── Lookup ── */
   .lookup-input-row {
     flex-direction: column;
     gap: .5rem;
   }
 
-  .lookup-input-row input {
-    width: 100%;
-  }
-
+  .lookup-input-row input,
   .lookup-input-row button {
     width: 100%;
-    align-self: stretch;
   }
 
-  /* Table */
+  /* ── Table ── */
   .table-header-row {
     flex-wrap: wrap;
     padding: 1rem 1rem .75rem;
@@ -632,14 +646,14 @@ footer {
     white-space: nowrap;
   }
 
-  /* Footer */
+  /* ── Footer ── */
   footer {
     padding: 1rem;
     font-size: .62rem;
   }
 }
 
-/* ── Language toggle ──────────────────────────────────────── */
+/* ── Language toggle (all breakpoints) ── */
 .lang-toggle {
   display: flex;
   gap: .3rem;
